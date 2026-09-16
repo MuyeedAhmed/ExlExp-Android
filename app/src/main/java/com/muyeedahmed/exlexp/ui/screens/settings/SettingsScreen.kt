@@ -16,6 +16,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.filled.FileUpload
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
@@ -92,6 +97,27 @@ fun SettingsScreen(
 
     var showExportDialog by remember { mutableStateOf(false) }
     var exportedJsonText by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
+    var showImportDialog by remember { mutableStateOf(false) }
+    var importJsonText by remember { mutableStateOf("") }
+
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            try {
+                val content = context.contentResolver.openInputStream(it)?.bufferedReader()?.use { reader -> reader.readText() }
+                if (!content.isNullOrBlank()) {
+                    importJsonText = content
+                }
+            } catch (e: Exception) {
+                scope.launch {
+                    snackbarHostState.showSnackbar("Failed to read file: ${e.message}")
+                }
+            }
+        }
+    }
 
     var cardToRename by remember { mutableStateOf<CreditCard?>(null) }
     var renameText by remember { mutableStateOf("") }
@@ -396,6 +422,22 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Export All Data as Structured JSON")
                     }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Import JSON Backup Button
+                    OutlinedButton(
+                        onClick = {
+                            importJsonText = ""
+                            showImportDialog = true
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(Icons.Default.FileUpload, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Import Old Data (JSON)")
+                    }
                 }
             }
         }
@@ -595,6 +637,64 @@ fun SettingsScreen(
                 confirmButton = {
                     Button(onClick = { showExportDialog = false }) {
                         Text("Close")
+                    }
+                }
+            )
+        }
+
+        // Import JSON Dialog
+        if (showImportDialog) {
+            AlertDialog(
+                onDismissRequest = { showImportDialog = false },
+                title = { Text("Import Old Data") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(
+                            text = "Paste your exported JSON backup data below or pick a backup file from storage:",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        FilledTonalButton(
+                            onClick = { filePickerLauncher.launch("*/*") },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Icon(Icons.Default.FileUpload, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Select Backup File (*.json)")
+                        }
+
+                        OutlinedTextField(
+                            value = importJsonText,
+                            onValueChange = { importJsonText = it },
+                            placeholder = { Text("Paste JSON backup content here...") },
+                            textStyle = androidx.compose.ui.text.TextStyle(
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 11.sp
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            if (importJsonText.isNotBlank()) {
+                                viewModel.importData(importJsonText)
+                                showImportDialog = false
+                            }
+                        },
+                        enabled = importJsonText.isNotBlank()
+                    ) {
+                        Text("Import Data")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showImportDialog = false }) {
+                        Text("Cancel")
                     }
                 }
             )

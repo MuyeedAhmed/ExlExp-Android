@@ -420,26 +420,23 @@ public final class DaggerExlExpApp_HiltComponents_SingletonC {
 
     @IdentifierNameString
     private static final class LazyClassKeyProvider {
+      static String com_muyeedahmed_exlexp_ui_screens_dashboard_DashboardViewModel = "com.muyeedahmed.exlexp.ui.screens.dashboard.DashboardViewModel";
+
       static String com_muyeedahmed_exlexp_ui_screens_settings_SettingsViewModel = "com.muyeedahmed.exlexp.ui.screens.settings.SettingsViewModel";
-
-      static String com_muyeedahmed_exlexp_ui_screens_logexpense_LogExpenseViewModel = "com.muyeedahmed.exlexp.ui.screens.logexpense.LogExpenseViewModel";
-
-      static String com_muyeedahmed_exlexp_ui_screens_creditcards_CreditCardsViewModel = "com.muyeedahmed.exlexp.ui.screens.creditcards.CreditCardsViewModel";
 
       static String com_muyeedahmed_exlexp_ui_screens_accounts_AccountsViewModel = "com.muyeedahmed.exlexp.ui.screens.accounts.AccountsViewModel";
 
       static String com_muyeedahmed_exlexp_ui_screens_alltransactions_AllTransactionsViewModel = "com.muyeedahmed.exlexp.ui.screens.alltransactions.AllTransactionsViewModel";
 
-      static String com_muyeedahmed_exlexp_ui_screens_dashboard_DashboardViewModel = "com.muyeedahmed.exlexp.ui.screens.dashboard.DashboardViewModel";
+      static String com_muyeedahmed_exlexp_ui_screens_logexpense_LogExpenseViewModel = "com.muyeedahmed.exlexp.ui.screens.logexpense.LogExpenseViewModel";
+
+      static String com_muyeedahmed_exlexp_ui_screens_creditcards_CreditCardsViewModel = "com.muyeedahmed.exlexp.ui.screens.creditcards.CreditCardsViewModel";
+
+      @KeepFieldType
+      DashboardViewModel com_muyeedahmed_exlexp_ui_screens_dashboard_DashboardViewModel2;
 
       @KeepFieldType
       SettingsViewModel com_muyeedahmed_exlexp_ui_screens_settings_SettingsViewModel2;
-
-      @KeepFieldType
-      LogExpenseViewModel com_muyeedahmed_exlexp_ui_screens_logexpense_LogExpenseViewModel2;
-
-      @KeepFieldType
-      CreditCardsViewModel com_muyeedahmed_exlexp_ui_screens_creditcards_CreditCardsViewModel2;
 
       @KeepFieldType
       AccountsViewModel com_muyeedahmed_exlexp_ui_screens_accounts_AccountsViewModel2;
@@ -448,7 +445,10 @@ public final class DaggerExlExpApp_HiltComponents_SingletonC {
       AllTransactionsViewModel com_muyeedahmed_exlexp_ui_screens_alltransactions_AllTransactionsViewModel2;
 
       @KeepFieldType
-      DashboardViewModel com_muyeedahmed_exlexp_ui_screens_dashboard_DashboardViewModel2;
+      LogExpenseViewModel com_muyeedahmed_exlexp_ui_screens_logexpense_LogExpenseViewModel2;
+
+      @KeepFieldType
+      CreditCardsViewModel com_muyeedahmed_exlexp_ui_screens_creditcards_CreditCardsViewModel2;
     }
   }
 
@@ -508,35 +508,35 @@ public final class DaggerExlExpApp_HiltComponents_SingletonC {
 
     @IdentifierNameString
     private static final class LazyClassKeyProvider {
+      static String com_muyeedahmed_exlexp_ui_screens_alltransactions_AllTransactionsViewModel = "com.muyeedahmed.exlexp.ui.screens.alltransactions.AllTransactionsViewModel";
+
       static String com_muyeedahmed_exlexp_ui_screens_accounts_AccountsViewModel = "com.muyeedahmed.exlexp.ui.screens.accounts.AccountsViewModel";
+
+      static String com_muyeedahmed_exlexp_ui_screens_settings_SettingsViewModel = "com.muyeedahmed.exlexp.ui.screens.settings.SettingsViewModel";
+
+      static String com_muyeedahmed_exlexp_ui_screens_logexpense_LogExpenseViewModel = "com.muyeedahmed.exlexp.ui.screens.logexpense.LogExpenseViewModel";
 
       static String com_muyeedahmed_exlexp_ui_screens_dashboard_DashboardViewModel = "com.muyeedahmed.exlexp.ui.screens.dashboard.DashboardViewModel";
 
       static String com_muyeedahmed_exlexp_ui_screens_creditcards_CreditCardsViewModel = "com.muyeedahmed.exlexp.ui.screens.creditcards.CreditCardsViewModel";
 
-      static String com_muyeedahmed_exlexp_ui_screens_logexpense_LogExpenseViewModel = "com.muyeedahmed.exlexp.ui.screens.logexpense.LogExpenseViewModel";
-
-      static String com_muyeedahmed_exlexp_ui_screens_alltransactions_AllTransactionsViewModel = "com.muyeedahmed.exlexp.ui.screens.alltransactions.AllTransactionsViewModel";
-
-      static String com_muyeedahmed_exlexp_ui_screens_settings_SettingsViewModel = "com.muyeedahmed.exlexp.ui.screens.settings.SettingsViewModel";
+      @KeepFieldType
+      AllTransactionsViewModel com_muyeedahmed_exlexp_ui_screens_alltransactions_AllTransactionsViewModel2;
 
       @KeepFieldType
       AccountsViewModel com_muyeedahmed_exlexp_ui_screens_accounts_AccountsViewModel2;
+
+      @KeepFieldType
+      SettingsViewModel com_muyeedahmed_exlexp_ui_screens_settings_SettingsViewModel2;
+
+      @KeepFieldType
+      LogExpenseViewModel com_muyeedahmed_exlexp_ui_screens_logexpense_LogExpenseViewModel2;
 
       @KeepFieldType
       DashboardViewModel com_muyeedahmed_exlexp_ui_screens_dashboard_DashboardViewModel2;
 
       @KeepFieldType
       CreditCardsViewModel com_muyeedahmed_exlexp_ui_screens_creditcards_CreditCardsViewModel2;
-
-      @KeepFieldType
-      LogExpenseViewModel com_muyeedahmed_exlexp_ui_screens_logexpense_LogExpenseViewModel2;
-
-      @KeepFieldType
-      AllTransactionsViewModel com_muyeedahmed_exlexp_ui_screens_alltransactions_AllTransactionsViewModel2;
-
-      @KeepFieldType
-      SettingsViewModel com_muyeedahmed_exlexp_ui_screens_settings_SettingsViewModel2;
     }
 
     private static final class SwitchingProvider<T> implements Provider<T> {

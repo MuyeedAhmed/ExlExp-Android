@@ -10,6 +10,7 @@ import com.muyeedahmed.exlexp.data.local.entity.CreditCardEntity
 import com.muyeedahmed.exlexp.data.local.entity.ExpenseEntity
 import com.muyeedahmed.exlexp.data.local.entity.FutureExpenseEntity
 import com.muyeedahmed.exlexp.data.remote.SupabaseClientProvider
+import com.muyeedahmed.exlexp.domain.repository.ImportResult
 import com.muyeedahmed.exlexp.domain.repository.SyncRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.gotrue.auth
@@ -174,6 +175,105 @@ class SyncRepositoryImpl @Inject constructor(
             futureExpenses = futureExpenses
         )
         return json.encodeToString(payload)
+    }
+
+    override suspend fun importDataFromJson(jsonString: String, targetUsername: String): Result<ImportResult> {
+        return runCatching {
+            val trimmed = jsonString.trim()
+            if (trimmed.isEmpty()) {
+                throw IllegalArgumentException("Input JSON is empty")
+            }
+
+            var importedCards = 0
+            var importedExpenses = 0
+            var importedFuture = 0
+
+            // 1. Try parsing as BackupPayload
+            val payload = try {
+                json.decodeFromString<BackupPayload>(trimmed)
+            } catch (_: Exception) {
+                null
+            }
+
+            if (payload != null) {
+                if (payload.cards.isNotEmpty()) {
+                    val cardsToInsert = payload.cards.map { card ->
+                        card.copy(
+                            username = targetUsername,
+                            isSyncDirty = true
+                        )
+                    }
+                    cardDao.insertCards(cardsToInsert)
+                    importedCards += cardsToInsert.size
+                }
+
+                if (payload.expenses.isNotEmpty()) {
+                    val expensesToInsert = payload.expenses.map { exp ->
+                        exp.copy(
+                            username = targetUsername,
+                            isSyncDirty = true
+                        )
+                    }
+                    expenseDao.insertExpenses(expensesToInsert)
+                    importedExpenses += expensesToInsert.size
+                }
+
+                if (payload.futureExpenses.isNotEmpty()) {
+                    val futureToInsert = payload.futureExpenses.map { fut ->
+                        fut.copy(
+                            username = targetUsername,
+                            isSyncDirty = true
+                        )
+                    }
+                    futureExpenseDao.insertFutureExpenses(futureToInsert)
+                    importedFuture += futureToInsert.size
+                }
+            } else {
+                // 2. Fallback: Try parsing as list of ExpenseEntity directly
+                val expensesList = try {
+                    json.decodeFromString<List<ExpenseEntity>>(trimmed)
+                } catch (_: Exception) {
+                    null
+                }
+
+                if (!expensesList.isNullOrEmpty()) {
+                    val expensesToInsert = expensesList.map { exp ->
+                        exp.copy(
+                            username = targetUsername,
+                            isSyncDirty = true
+                        )
+                    }
+                    expenseDao.insertExpenses(expensesToInsert)
+                    importedExpenses += expensesToInsert.size
+                } else {
+                    // 3. Fallback: Try parsing as list of CreditCardEntity directly
+                    val cardsList = try {
+                        json.decodeFromString<List<CreditCardEntity>>(trimmed)
+                    } catch (_: Exception) {
+                        null
+                    }
+
+                    if (!cardsList.isNullOrEmpty()) {
+                        val cardsToInsert = cardsList.map { card ->
+                            card.copy(
+                                username = targetUsername,
+                                isSyncDirty = true
+                            )
+                        }
+                        cardDao.insertCards(cardsToInsert)
+                        importedCards += cardsToInsert.size
+                    } else {
+                        throw IllegalArgumentException("Could not parse JSON. Ensure it is valid backup JSON or transaction list.")
+                    }
+                }
+            }
+
+            ImportResult(
+                cardsCount = importedCards,
+                expensesCount = importedExpenses,
+                futureExpensesCount = importedFuture
+            )
+        }
     }
 
     override suspend fun login(email: String, password: String): Result<String> {

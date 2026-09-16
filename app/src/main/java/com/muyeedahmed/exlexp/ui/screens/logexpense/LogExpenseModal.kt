@@ -283,32 +283,18 @@ fun LogExpenseModal(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(6.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = dateText,
-                    onValueChange = { dateText = it },
-                    singleLine = true,
-                    textStyle = androidx.compose.ui.text.TextStyle(
-                        fontSize = 14.sp,
-                        fontFamily = FontFamily.Monospace,
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
-                    modifier = Modifier.weight(1f)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                AssistChip(
-                    onClick = { dateText = LocalDate.now().toString() },
-                    label = { Text("Today", style = MaterialTheme.typography.labelMedium) }
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                AssistChip(
-                    onClick = { dateText = LocalDate.now().minusDays(1).toString() },
-                    label = { Text("Yesterday", style = MaterialTheme.typography.labelMedium) }
-                )
-            }
+            OutlinedTextField(
+                value = dateText,
+                onValueChange = { dateText = it },
+                singleLine = true,
+                placeholder = { Text("YYYY-MM-DD") },
+                textStyle = androidx.compose.ui.text.TextStyle(
+                    fontSize = 14.sp,
+                    fontFamily = FontFamily.Monospace,
+                    color = MaterialTheme.colorScheme.onSurface
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
 
             Spacer(modifier = Modifier.height(14.dp))
 

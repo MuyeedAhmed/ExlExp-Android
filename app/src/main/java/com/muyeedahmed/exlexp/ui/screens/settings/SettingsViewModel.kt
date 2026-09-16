@@ -158,6 +158,22 @@ class SettingsViewModel @Inject constructor(
         return syncRepository.exportDataAsJson(syncRepository.getCurrentUsername())
     }
 
+    fun importData(jsonContent: String) {
+        viewModelScope.launch {
+            _isSyncing.value = true
+            val result = syncRepository.importDataFromJson(jsonContent)
+            _isSyncing.value = false
+            result.fold(
+                onSuccess = { res ->
+                    _statusMessage.value = "Import successful: ${res.cardsCount} accounts, ${res.expensesCount} transactions, ${res.futureExpensesCount} bills."
+                },
+                onFailure = { err ->
+                    _statusMessage.value = "Import failed: ${err.message}"
+                }
+            )
+        }
+    }
+
     fun clearStatusMessage() {
         _statusMessage.value = null
     }
