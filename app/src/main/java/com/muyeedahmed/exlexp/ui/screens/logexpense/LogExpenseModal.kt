@@ -4,10 +4,15 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.ui.text.style.TextAlign
 import com.muyeedahmed.exlexp.ui.components.AppDatePickerDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -86,6 +91,15 @@ val STANDARD_CATEGORIES = listOf(
     "Eating Out", "Necessary Purchases", "Luxary Purchases", "Others",
     "Salary", "Transfer"
 )
+
+private fun formatDisplayDate(isoDate: String): String {
+    return try {
+        val parts = isoDate.trim().split("-")
+        if (parts.size == 3) "${parts[1]}/${parts[2]}/${parts[0]}" else isoDate
+    } catch (_: Exception) {
+        isoDate
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -260,274 +274,401 @@ fun LogExpenseModal(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Mode Selection: Transaction vs Transfer (Only in Create Mode)
+            // Mode Selection: Transaction vs Transfer (Segmented Pill from Screenshot)
             if (existingExpense == null) {
-                PrimaryTabRow(
-                    selectedTabIndex = if (mode == ModalMode.TRANSACTION) 0 else 1,
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                    modifier = Modifier.fillMaxWidth()
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFFF1F5F9), RoundedCornerShape(8.dp))
+                        .padding(4.dp)
                 ) {
-                    Tab(
-                        selected = mode == ModalMode.TRANSACTION,
-                        onClick = { mode = ModalMode.TRANSACTION },
-                        text = { Text("Transaction", fontWeight = FontWeight.Bold) },
-                        icon = { Icon(Icons.Default.ReceiptLong, contentDescription = null, modifier = Modifier.size(18.dp)) }
-                    )
-                    Tab(
-                        selected = mode == ModalMode.TRANSFER,
-                        onClick = { mode = ModalMode.TRANSFER },
-                        text = { Text("Transfer", fontWeight = FontWeight.Bold) },
-                        icon = { Icon(Icons.Default.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp)) }
-                    )
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(40.dp)
+                                .background(
+                                    color = if (mode == ModalMode.TRANSACTION) Color(0xFF111827) else Color.Transparent,
+                                    shape = RoundedCornerShape(6.dp)
+                                )
+                                .clickable { mode = ModalMode.TRANSACTION },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "TRANSACTION",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp,
+                                letterSpacing = 0.5.sp,
+                                color = if (mode == ModalMode.TRANSACTION) Color.White else Color(0xFF64748B)
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(40.dp)
+                                .background(
+                                    color = if (mode == ModalMode.TRANSFER) Color(0xFF111827) else Color.Transparent,
+                                    shape = RoundedCornerShape(6.dp)
+                                )
+                                .clickable { mode = ModalMode.TRANSFER },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "TRANSFER",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp,
+                                letterSpacing = 0.5.sp,
+                                color = if (mode == ModalMode.TRANSFER) Color.White else Color(0xFF64748B)
+                            )
+                        }
+                    }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Date Input with DatePicker
-            Text(
-                text = "DATE",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Box(modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = dateText,
-                    onValueChange = {},
-                    readOnly = true,
-                    placeholder = { Text("YYYY-MM-DD") },
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.CalendarMonth,
-                            contentDescription = "Select Date"
-                        )
-                    },
-                    textStyle = androidx.compose.ui.text.TextStyle(
-                        fontSize = 14.sp,
-                        fontFamily = FontFamily.Monospace,
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .clickable { showDatePicker = true }
-                )
-            }
-
-            if (showDatePicker) {
-                AppDatePickerDialog(
-                    initialDate = dateText,
-                    onDateSelected = { dateText = it },
-                    onDismiss = { showDatePicker = false }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
             if (mode == ModalMode.TRANSACTION) {
-                // Payment Account / Card Dropdown
-                Text(
-                    text = "PAYMENT ACCOUNT / CARD",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                ExposedDropdownMenuBox(
-                    expanded = accountDropdownExpanded,
-                    onExpandedChange = { accountDropdownExpanded = !accountDropdownExpanded },
-                    modifier = Modifier.fillMaxWidth()
+                // Row 1: ACCOUNT & CATEGORY Side by Side
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    OutlinedTextField(
-                        value = selectedCard?.name ?: "Select account / card",
-                        onValueChange = {},
-                        readOnly = true,
-                        leadingIcon = {
-                            selectedCard?.let { card ->
-                                val icon = when {
-                                    card.isChecking -> Icons.Default.AccountBalance
-                                    card.isSaving -> Icons.Default.Savings
-                                    card.isBrokerage -> Icons.AutoMirrored.Filled.TrendingUp
-                                    else -> Icons.Default.CreditCard
-                                }
-                                Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
-                            }
-                        },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = accountDropdownExpanded) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = accountDropdownExpanded,
-                        onDismissRequest = { accountDropdownExpanded = false }
-                    ) {
-                        cards.forEach { card ->
-                            val icon = when {
-                                card.isChecking -> Icons.Default.AccountBalance
-                                card.isSaving -> Icons.Default.Savings
-                                card.isBrokerage -> Icons.AutoMirrored.Filled.TrendingUp
-                                else -> Icons.Default.CreditCard
-                            }
-                            DropdownMenuItem(
-                                text = { Text(card.name) },
-                                leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                                onClick = {
-                                    selectedCardId = card.id
-                                    accountDropdownExpanded = false
-                                }
+                    // ACCOUNT Dropdown
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "ACCOUNT",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF334155)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        ExposedDropdownMenuBox(
+                            expanded = accountDropdownExpanded,
+                            onExpandedChange = { accountDropdownExpanded = !accountDropdownExpanded },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            OutlinedTextField(
+                                value = selectedCard?.name ?: "Cash / Checking",
+                                onValueChange = {},
+                                readOnly = true,
+                                leadingIcon = {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(start = 4.dp)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .width(4.dp)
+                                                .height(20.dp)
+                                                .background(Color(0xFF16A34A), RoundedCornerShape(2.dp))
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        val icon = when {
+                                            selectedCard?.isChecking == true -> Icons.Default.AccountBalance
+                                            selectedCard?.isSaving == true -> Icons.Default.Savings
+                                            selectedCard?.isBrokerage == true -> Icons.AutoMirrored.Filled.TrendingUp
+                                            else -> Icons.Default.CreditCard
+                                        }
+                                        Icon(
+                                            icon,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp),
+                                            tint = Color(0xFF16A34A)
+                                        )
+                                    }
+                                },
+                                trailingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowDropDown,
+                                        contentDescription = null,
+                                        tint = Color(0xFF64748B),
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                },
+                                singleLine = true,
+                                shape = RoundedCornerShape(8.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color(0xFF94A3B8),
+                                    unfocusedBorderColor = Color(0xFFCBD5E1),
+                                    focusedTextColor = Color(0xFF0F172A),
+                                    unfocusedTextColor = Color(0xFF0F172A)
+                                ),
+                                textStyle = androidx.compose.ui.text.TextStyle(
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .menuAnchor()
                             )
+                            ExposedDropdownMenu(
+                                expanded = accountDropdownExpanded,
+                                onDismissRequest = { accountDropdownExpanded = false }
+                            ) {
+                                cards.forEach { card ->
+                                    val icon = when {
+                                        card.isChecking -> Icons.Default.AccountBalance
+                                        card.isSaving -> Icons.Default.Savings
+                                        card.isBrokerage -> Icons.AutoMirrored.Filled.TrendingUp
+                                        else -> Icons.Default.CreditCard
+                                    }
+                                    DropdownMenuItem(
+                                        text = { Text(card.name, fontSize = 14.sp) },
+                                        leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                                        onClick = {
+                                            selectedCardId = card.id
+                                            accountDropdownExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // CATEGORY Dropdown
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "CATEGORY",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF334155)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        ExposedDropdownMenuBox(
+                            expanded = categoryExpanded,
+                            onExpandedChange = { categoryExpanded = !categoryExpanded },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            OutlinedTextField(
+                                value = categoryText,
+                                onValueChange = {},
+                                readOnly = true,
+                                trailingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowDropDown,
+                                        contentDescription = null,
+                                        tint = Color(0xFF64748B),
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                },
+                                singleLine = true,
+                                shape = RoundedCornerShape(8.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color(0xFF94A3B8),
+                                    unfocusedBorderColor = Color(0xFFCBD5E1),
+                                    focusedTextColor = Color(0xFF0F172A),
+                                    unfocusedTextColor = Color(0xFF0F172A)
+                                ),
+                                textStyle = androidx.compose.ui.text.TextStyle(
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .menuAnchor()
+                            )
+                            ExposedDropdownMenu(
+                                expanded = categoryExpanded,
+                                onDismissRequest = { categoryExpanded = false }
+                            ) {
+                                STANDARD_CATEGORIES.forEach { cat ->
+                                    DropdownMenuItem(
+                                        text = { Text(cat, fontSize = 14.sp) },
+                                        onClick = {
+                                            categoryText = cat
+                                            categoryExpanded = false
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Amount Input
+                // Row 2: FROM / TO NAME (Full width)
                 Text(
-                    text = "AMOUNT ($)",
+                    text = if (isDeposit) "FROM / TO NAME" else "DESCRIPTION / MERCHANT NAME",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Color(0xFF334155)
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 OutlinedTextField(
-                    value = amountText,
-                    onValueChange = { amountText = it },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    value = if (isDeposit) fromToText else descriptionText,
+                    onValueChange = {
+                        if (isDeposit) fromToText = it else descriptionText = it
+                    },
+                    placeholder = {
+                        Text(
+                            text = if (isDeposit) "e.g. Landlord, Employer, John Doe" else "e.g. Trader Joe's, Netflix, Amazon",
+                            color = Color(0xFF94A3B8),
+                            fontSize = 14.sp
+                        )
+                    },
                     singleLine = true,
-                    placeholder = { Text("0.00") },
-                    textStyle = androidx.compose.ui.text.TextStyle(
-                        fontSize = 16.sp,
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                    shape = RoundedCornerShape(8.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF94A3B8),
+                        unfocusedBorderColor = Color(0xFFCBD5E1)
                     ),
+                    textStyle = androidx.compose.ui.text.TextStyle(fontSize = 14.sp),
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(14.dp))
 
+                // Row 3: AMOUNT & DATE Side by Side
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // AMOUNT
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "AMOUNT",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF334155)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        OutlinedTextField(
+                            value = amountText,
+                            onValueChange = { amountText = it },
+                            placeholder = {
+                                Text(
+                                    text = "0.00",
+                                    textAlign = TextAlign.Center,
+                                    color = Color(0xFF94A3B8),
+                                    modifier = Modifier.fillMaxWidth(),
+                                    fontSize = 14.sp
+                                )
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            singleLine = true,
+                            shape = RoundedCornerShape(8.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Color(0xFF94A3B8),
+                                unfocusedBorderColor = Color(0xFFCBD5E1)
+                            ),
+                            textStyle = androidx.compose.ui.text.TextStyle(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                fontFamily = FontFamily.Monospace
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    // DATE
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "DATE",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF334155)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            OutlinedTextField(
+                                value = formatDisplayDate(dateText),
+                                onValueChange = {},
+                                readOnly = true,
+                                trailingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.CalendarToday,
+                                        contentDescription = "Select Date",
+                                        tint = Color(0xFF0F172A),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                },
+                                singleLine = true,
+                                shape = RoundedCornerShape(8.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color(0xFF94A3B8),
+                                    unfocusedBorderColor = Color(0xFFCBD5E1)
+                                ),
+                                textStyle = androidx.compose.ui.text.TextStyle(
+                                    fontSize = 14.sp,
+                                    textAlign = TextAlign.Center,
+                                    fontFamily = FontFamily.Monospace
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .clickable { showDatePicker = true }
+                            )
+                        }
+                    }
+                }
+
+                // Row 4: Flow Direction Buttons [ From ] and [ To ] (for Deposit accounts)
                 if (isDeposit) {
-                    // Deposit / Withdrawal Flow Toggle
-                    Text(
-                        text = "CASH FLOW DIRECTION",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        FilterChip(
-                            selected = !isDepositInflow,
-                            onClick = { isDepositInflow = false },
-                            label = { Text("To", fontWeight = if (!isDepositInflow) FontWeight.Bold else FontWeight.Normal) },
-                            leadingIcon = { Icon(Icons.Default.ArrowUpward, contentDescription = null, modifier = Modifier.size(16.dp)) },
-                            modifier = Modifier.weight(1f)
-                        )
-                        FilterChip(
-                            selected = isDepositInflow,
-                            onClick = { isDepositInflow = true },
-                            label = { Text("From", fontWeight = if (isDepositInflow) FontWeight.Bold else FontWeight.Normal) },
-                            leadingIcon = { Icon(Icons.Default.ArrowDownward, contentDescription = null, modifier = Modifier.size(16.dp)) },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
+                        val isFromSelected = isDepositInflow
+                        val isToSelected = !isDepositInflow
 
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    // Savings Interest Checkbox
-                    if (isSavings) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(
-                                checked = isInterest,
-                                onCheckedChange = {
-                                    isInterest = it
-                                    if (it) {
-                                        isDepositInflow = true
-                                        categoryText = "Interest"
-                                        fromToText = "Interest"
-                                        detailsText = "Savings Interest"
-                                    }
-                                }
-                            )
-                            Text("HYSA Interest Earned", style = MaterialTheme.typography.bodyMedium)
-                        }
-                    }
-
-                    if (!isInterest) {
-                        // Zelle Checkbox
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(
-                                checked = isZelle,
-                                onCheckedChange = { isZelle = it }
-                            )
-                            Text("Zelle Transaction", style = MaterialTheme.typography.bodyMedium)
-                        }
-
-                        if (isZelle) {
-                            ElevatedCard(
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(8.dp),
-                                colors = CardDefaults.elevatedCardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+                        // FROM button (Income / Deposit / Inflow)
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(44.dp)
+                                .background(
+                                    color = if (isFromSelected) Color(0xFFFFEDD5) else Color(0xFFF1F5F9),
+                                    shape = RoundedCornerShape(8.dp)
                                 )
-                            ) {
-                                Column(modifier = Modifier.padding(12.dp)) {
-                                    OutlinedTextField(
-                                        value = zelleName,
-                                        onValueChange = { zelleName = it },
-                                        label = { Text("Recipient / Sender Name") },
-                                        singleLine = true,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    OutlinedTextField(
-                                        value = zelleDetails,
-                                        onValueChange = { zelleDetails = it },
-                                        label = { Text("Zelle Memo / Notes (Optional)") },
-                                        singleLine = true,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(10.dp))
-                        } else {
-                            OutlinedTextField(
-                                value = fromToText,
-                                onValueChange = { fromToText = it },
-                                label = { Text("From / To (Merchant, Employer, Person)") },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth()
+                                .border(
+                                    width = if (isFromSelected) 1.5.dp else 1.dp,
+                                    color = if (isFromSelected) Color(0xFFF97316) else Color(0xFFE2E8F0),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .clickable { isDepositInflow = true },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "From",
+                                fontWeight = if (isFromSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isFromSelected) Color(0xFF9A3412) else Color(0xFF64748B),
+                                fontSize = 14.sp
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            OutlinedTextField(
-                                value = detailsText,
-                                onValueChange = { detailsText = it },
-                                label = { Text("Details / Memo (Optional)") },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth()
+                        }
+
+                        // TO button (Expense / Debit / Outflow)
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(44.dp)
+                                .background(
+                                    color = if (isToSelected) Color(0xFFFFEDD5) else Color(0xFFF1F5F9),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .border(
+                                    width = if (isToSelected) 1.5.dp else 1.dp,
+                                    color = if (isToSelected) Color(0xFFF97316) else Color(0xFFE2E8F0),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .clickable { isDepositInflow = false },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "To",
+                                fontWeight = if (isToSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isToSelected) Color(0xFF9A3412) else Color(0xFF64748B),
+                                fontSize = 14.sp
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
                         }
                     }
                 } else {
-                    // Credit Card Spends
-                    OutlinedTextField(
-                        value = descriptionText,
-                        onValueChange = { descriptionText = it },
-                        label = { Text("Description / Merchant Name") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-
+                    // Credit Card Reward / Fee toggles
+                    Spacer(modifier = Modifier.height(10.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -569,184 +710,293 @@ fun LogExpenseModal(
                             onValueChange = { rewardValueText = it },
                             label = { Text("Reward Value ($)") },
                             singleLine = true,
+                            shape = RoundedCornerShape(8.dp),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Category Selector
-                Text(
-                    text = "CATEGORY",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                ExposedDropdownMenuBox(
-                    expanded = categoryExpanded,
-                    onExpandedChange = { categoryExpanded = !categoryExpanded },
-                    modifier = Modifier.fillMaxWidth()
+                // Row 5: DETAILS with ZELLE Button
+                Spacer(modifier = Modifier.height(14.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    OutlinedTextField(
-                        value = categoryText,
-                        onValueChange = {},
-                        readOnly = true,
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor()
+                    Text(
+                        text = "DETAILS",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF334155)
                     )
-                    ExposedDropdownMenu(
-                        expanded = categoryExpanded,
-                        onDismissRequest = { categoryExpanded = false }
-                    ) {
-                        STANDARD_CATEGORIES.forEach { cat ->
-                            DropdownMenuItem(
-                                text = { Text(cat) },
-                                onClick = {
-                                    categoryText = cat
-                                    categoryExpanded = false
-                                }
+
+                    if (isDeposit) {
+                        Box(
+                            modifier = Modifier
+                                .border(
+                                    width = 1.dp,
+                                    color = if (isZelle) Color(0xFF7C3AED) else Color(0xFFCBD5E1),
+                                    shape = RoundedCornerShape(6.dp)
+                                )
+                                .background(
+                                    color = if (isZelle) Color(0xFFEDE9FE) else Color.Transparent,
+                                    shape = RoundedCornerShape(6.dp)
+                                )
+                                .clickable { isZelle = !isZelle }
+                                .padding(horizontal = 10.dp, vertical = 3.dp)
+                        ) {
+                            Text(
+                                text = "ZELLE",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isZelle) Color(0xFF7C3AED) else Color(0xFF64748B)
                             )
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(6.dp))
+                OutlinedTextField(
+                    value = detailsText,
+                    onValueChange = {
+                        detailsText = it
+                        if (isZelle) zelleDetails = it
+                    },
+                    placeholder = {
+                        Text(
+                            text = "e.g. Monthly rent, utility bill payment",
+                            color = Color(0xFF94A3B8),
+                            fontSize = 14.sp
+                        )
+                    },
+                    minLines = 3,
+                    maxLines = 4,
+                    shape = RoundedCornerShape(8.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF94A3B8),
+                        unfocusedBorderColor = Color(0xFFCBD5E1)
+                    ),
+                    textStyle = androidx.compose.ui.text.TextStyle(fontSize = 14.sp),
+                    modifier = Modifier.fillMaxWidth()
+                )
             } else {
                 // ==================== TRANSFER MODE ====================
                 val sourceCard = cards.find { it.id == sourceCardId }
                 val targetCard = cards.find { it.id == targetCardId }
 
-                Text(
-                    text = "SOURCE ACCOUNT (FROM)",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                ExposedDropdownMenuBox(
-                    expanded = sourceAccountDropdownExpanded,
-                    onExpandedChange = { sourceAccountDropdownExpanded = !sourceAccountDropdownExpanded },
-                    modifier = Modifier.fillMaxWidth()
+                // Row 1: FROM ACCOUNT & TO ACCOUNT Side by Side
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    OutlinedTextField(
-                        value = sourceCard?.name ?: "Select source account",
-                        onValueChange = {},
-                        readOnly = true,
-                        leadingIcon = {
-                            sourceCard?.let { card ->
-                                val icon = if (card.isSaving) Icons.Default.Savings else Icons.Default.AccountBalance
-                                Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
-                            }
-                        },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = sourceAccountDropdownExpanded) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = sourceAccountDropdownExpanded,
-                        onDismissRequest = { sourceAccountDropdownExpanded = false }
-                    ) {
-                        cards.filter { it.accountType.isDeposit }.forEach { card ->
-                            val icon = if (card.isSaving) Icons.Default.Savings else Icons.Default.AccountBalance
-                            DropdownMenuItem(
-                                text = { Text(card.name) },
-                                leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                                onClick = {
-                                    sourceCardId = card.id
-                                    sourceAccountDropdownExpanded = false
-                                }
+                    // SOURCE ACCOUNT
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "FROM ACCOUNT",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF334155)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        ExposedDropdownMenuBox(
+                            expanded = sourceAccountDropdownExpanded,
+                            onExpandedChange = { sourceAccountDropdownExpanded = !sourceAccountDropdownExpanded },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            OutlinedTextField(
+                                value = sourceCard?.name ?: "Select Source",
+                                onValueChange = {},
+                                readOnly = true,
+                                leadingIcon = {
+                                    val icon = if (sourceCard?.isSaving == true) Icons.Default.Savings else Icons.Default.AccountBalance
+                                    Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color(0xFF16A34A))
+                                },
+                                trailingIcon = {
+                                    Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = Color(0xFF64748B), modifier = Modifier.size(22.dp))
+                                },
+                                singleLine = true,
+                                shape = RoundedCornerShape(8.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color(0xFF94A3B8),
+                                    unfocusedBorderColor = Color(0xFFCBD5E1)
+                                ),
+                                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp, fontWeight = FontWeight.SemiBold),
+                                modifier = Modifier.fillMaxWidth().menuAnchor()
                             )
+                            ExposedDropdownMenu(
+                                expanded = sourceAccountDropdownExpanded,
+                                onDismissRequest = { sourceAccountDropdownExpanded = false }
+                            ) {
+                                cards.filter { it.accountType.isDeposit }.forEach { card ->
+                                    val icon = if (card.isSaving) Icons.Default.Savings else Icons.Default.AccountBalance
+                                    DropdownMenuItem(
+                                        text = { Text(card.name, fontSize = 14.sp) },
+                                        leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                                        onClick = {
+                                            sourceCardId = card.id
+                                            sourceAccountDropdownExpanded = false
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(14.dp))
-
-                Text(
-                    text = "TARGET ACCOUNT (TO)",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                ExposedDropdownMenuBox(
-                    expanded = targetAccountDropdownExpanded,
-                    onExpandedChange = { targetAccountDropdownExpanded = !targetAccountDropdownExpanded },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    OutlinedTextField(
-                        value = targetCard?.name ?: "Select target account",
-                        onValueChange = {},
-                        readOnly = true,
-                        leadingIcon = {
-                            targetCard?.let { card ->
-                                val icon = when {
-                                    card.isChecking -> Icons.Default.AccountBalance
-                                    card.isSaving -> Icons.Default.Savings
-                                    card.isBrokerage -> Icons.AutoMirrored.Filled.TrendingUp
-                                    else -> Icons.Default.CreditCard
-                                }
-                                Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
-                            }
-                        },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = targetAccountDropdownExpanded) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = targetAccountDropdownExpanded,
-                        onDismissRequest = { targetAccountDropdownExpanded = false }
-                    ) {
-                        cards.filter { it.id != sourceCardId }.forEach { card ->
-                            val icon = when {
-                                card.isChecking -> Icons.Default.AccountBalance
-                                card.isSaving -> Icons.Default.Savings
-                                card.isBrokerage -> Icons.AutoMirrored.Filled.TrendingUp
-                                else -> Icons.Default.CreditCard
-                            }
-                            DropdownMenuItem(
-                                text = { Text(card.name) },
-                                leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                                onClick = {
-                                    targetCardId = card.id
-                                    if (!card.accountType.isDeposit) {
-                                        isCcBillPay = true
+                    // TARGET ACCOUNT
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "TO ACCOUNT",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF334155)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        ExposedDropdownMenuBox(
+                            expanded = targetAccountDropdownExpanded,
+                            onExpandedChange = { targetAccountDropdownExpanded = !targetAccountDropdownExpanded },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            OutlinedTextField(
+                                value = targetCard?.name ?: "Select Target",
+                                onValueChange = {},
+                                readOnly = true,
+                                leadingIcon = {
+                                    val icon = when {
+                                        targetCard?.isChecking == true -> Icons.Default.AccountBalance
+                                        targetCard?.isSaving == true -> Icons.Default.Savings
+                                        targetCard?.isBrokerage == true -> Icons.AutoMirrored.Filled.TrendingUp
+                                        else -> Icons.Default.CreditCard
                                     }
-                                    targetAccountDropdownExpanded = false
-                                }
+                                    Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+                                },
+                                trailingIcon = {
+                                    Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = Color(0xFF64748B), modifier = Modifier.size(22.dp))
+                                },
+                                singleLine = true,
+                                shape = RoundedCornerShape(8.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color(0xFF94A3B8),
+                                    unfocusedBorderColor = Color(0xFFCBD5E1)
+                                ),
+                                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp, fontWeight = FontWeight.SemiBold),
+                                modifier = Modifier.fillMaxWidth().menuAnchor()
                             )
+                            ExposedDropdownMenu(
+                                expanded = targetAccountDropdownExpanded,
+                                onDismissRequest = { targetAccountDropdownExpanded = false }
+                            ) {
+                                cards.filter { it.id != sourceCardId }.forEach { card ->
+                                    val icon = when {
+                                        card.isChecking -> Icons.Default.AccountBalance
+                                        card.isSaving -> Icons.Default.Savings
+                                        card.isBrokerage -> Icons.AutoMirrored.Filled.TrendingUp
+                                        else -> Icons.Default.CreditCard
+                                    }
+                                    DropdownMenuItem(
+                                        text = { Text(card.name, fontSize = 14.sp) },
+                                        leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                                        onClick = {
+                                            targetCardId = card.id
+                                            if (!card.accountType.isDeposit) {
+                                                isCcBillPay = true
+                                            }
+                                            targetAccountDropdownExpanded = false
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
 
+                // Row 2: AMOUNT & DATE Side by Side
                 Spacer(modifier = Modifier.height(14.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // AMOUNT
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "AMOUNT",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF334155)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        OutlinedTextField(
+                            value = amountText,
+                            onValueChange = { amountText = it },
+                            placeholder = {
+                                Text(
+                                    text = "0.00",
+                                    textAlign = TextAlign.Center,
+                                    color = Color(0xFF94A3B8),
+                                    modifier = Modifier.fillMaxWidth(),
+                                    fontSize = 14.sp
+                                )
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            singleLine = true,
+                            shape = RoundedCornerShape(8.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Color(0xFF94A3B8),
+                                unfocusedBorderColor = Color(0xFFCBD5E1)
+                            ),
+                            textStyle = androidx.compose.ui.text.TextStyle(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                fontFamily = FontFamily.Monospace
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
 
-                Text(
-                    text = "TRANSFER AMOUNT ($)",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                OutlinedTextField(
-                    value = amountText,
-                    onValueChange = { amountText = it },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    singleLine = true,
-                    placeholder = { Text("0.00") },
-                    textStyle = androidx.compose.ui.text.TextStyle(
-                        fontSize = 16.sp,
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    // DATE
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "DATE",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF334155)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            OutlinedTextField(
+                                value = formatDisplayDate(dateText),
+                                onValueChange = {},
+                                readOnly = true,
+                                trailingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.CalendarToday,
+                                        contentDescription = "Select Date",
+                                        tint = Color(0xFF0F172A),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                },
+                                singleLine = true,
+                                shape = RoundedCornerShape(8.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color(0xFF94A3B8),
+                                    unfocusedBorderColor = Color(0xFFCBD5E1)
+                                ),
+                                textStyle = androidx.compose.ui.text.TextStyle(
+                                    fontSize = 14.sp,
+                                    textAlign = TextAlign.Center,
+                                    fontFamily = FontFamily.Monospace
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .clickable { showDatePicker = true }
+                            )
+                        }
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
@@ -755,35 +1005,56 @@ fun LogExpenseModal(
                     Text("Credit Card Bill Payment", style = MaterialTheme.typography.bodyMedium)
                 }
 
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "DETAILS / MEMO",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF334155)
+                )
+                Spacer(modifier = Modifier.height(6.dp))
                 OutlinedTextField(
                     value = transferMemo,
                     onValueChange = { transferMemo = it },
-                    label = { Text("Transfer Memo / Notes (Optional)") },
-                    singleLine = true,
+                    placeholder = {
+                        Text("e.g. Savings transfer, payment memo", color = Color(0xFF94A3B8), fontSize = 14.sp)
+                    },
+                    minLines = 2,
+                    maxLines = 3,
+                    shape = RoundedCornerShape(8.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF94A3B8),
+                        unfocusedBorderColor = Color(0xFFCBD5E1)
+                    ),
+                    textStyle = androidx.compose.ui.text.TextStyle(fontSize = 14.sp),
                     modifier = Modifier.fillMaxWidth()
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Stay on page checkbox (if not editing)
+            // Row 6: Create Multiple Logs Checkbox (Centered from Screenshot)
             if (existingExpense == null) {
+                Spacer(modifier = Modifier.height(18.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Stay on sheet to log multiple entries",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    Checkbox(
+                        checked = stayOnPage,
+                        onCheckedChange = { stayOnPage = it }
                     )
-                    Switch(checked = stayOnPage, onCheckedChange = { stayOnPage = it })
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Create multiple logs (stay on this page)",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF334155)
+                    )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Submit Button
+            // Row 7: Dark + ADD Button from Screenshot
+            Spacer(modifier = Modifier.height(18.dp))
             Button(
                 onClick = {
                     val amt = amountText.toDoubleOrNull() ?: return@Button
@@ -795,8 +1066,8 @@ fun LogExpenseModal(
                             viewModel.logZelleExpense(
                                 card = card,
                                 direction = if (isDepositInflow) "From" else "To",
-                                name = zelleName,
-                                memo = zelleDetails,
+                                name = if (isDeposit) fromToText.ifBlank { "Zelle Contact" } else descriptionText.ifBlank { "Zelle Contact" },
+                                memo = detailsText,
                                 amount = amt,
                                 date = dateText,
                                 category = categoryText,
@@ -804,12 +1075,12 @@ fun LogExpenseModal(
                             )
                         } else {
                             val finalFromTo = if (isDeposit) fromToText.ifBlank { null } else null
-                            val finalDetails = if (isDeposit) detailsText.ifBlank { null } else null
+                            val finalDetails = detailsText.ifBlank { null }
                             val rVal = rewardValueText.toDoubleOrNull()
 
                             viewModel.logStandardExpense(
                                 card = card,
-                                description = descriptionText.ifBlank { if (isFee) "Annual Fee" else if (isDeposit) fromToText else "Expense" },
+                                description = if (isDeposit) fromToText.ifBlank { if (isDepositInflow) "Money In" else "Money Out" } else descriptionText.ifBlank { if (isFee) "Annual Fee" else "Expense" },
                                 amount = amt,
                                 date = dateText,
                                 category = categoryText,
@@ -832,7 +1103,7 @@ fun LogExpenseModal(
                             targetCard = target,
                             amount = amt,
                             date = dateText,
-                            memo = transferMemo,
+                            memo = transferMemo.ifBlank { detailsText },
                             isCcBillPay = isCcBillPay,
                             oldTransferLinkId = existingExpense?.transferLinkId
                         )
@@ -856,18 +1127,26 @@ fun LogExpenseModal(
                         }
                     }
                 },
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF111827),
+                    contentColor = Color.White
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .height(48.dp)
             ) {
-                val buttonIcon = if (existingExpense != null) Icons.Default.CheckCircle else if (mode == ModalMode.TRANSACTION) Icons.Default.Add else Icons.Default.SwapHoriz
-                Icon(buttonIcon, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (existingExpense != null) "Update Entry" else if (mode == ModalMode.TRANSACTION) "Log Transaction" else "Execute Transfer",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold
+                    text = if (existingExpense != null) "UPDATE" else "ADD",
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp,
+                    fontSize = 15.sp
                 )
             }
         }

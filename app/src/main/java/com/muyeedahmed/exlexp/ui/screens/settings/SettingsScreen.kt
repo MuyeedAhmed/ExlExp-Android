@@ -16,6 +16,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -85,6 +88,7 @@ fun SettingsScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val importDialogState by viewModel.importDialogState.collectAsState()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -725,6 +729,51 @@ fun SettingsScreen(
                         Text("Cancel")
                     }
                 }
+            )
+        }
+
+        importDialogState?.let { dialog ->
+            AlertDialog(
+                onDismissRequest = { viewModel.dismissImportDialog() },
+                title = {
+                    Text(
+                        text = dialog.title,
+                        fontWeight = FontWeight.Bold,
+                        color = if (dialog.isSuccess) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                    )
+                },
+                text = {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        Text(
+                            text = dialog.message,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(onClick = { viewModel.dismissImportDialog() }) {
+                        Text("OK")
+                    }
+                },
+                dismissButton = if (!dialog.isSuccess) {
+                    {
+                        TextButton(
+                            onClick = {
+                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+                                clipboard?.setPrimaryClip(ClipData.newPlainText("Import Error", dialog.message))
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Error details copied to clipboard")
+                                }
+                            }
+                        ) {
+                            Text("Copy Error")
+                        }
+                    }
+                } else null
             )
         }
     }

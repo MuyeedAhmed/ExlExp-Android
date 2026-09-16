@@ -148,7 +148,7 @@ fun AppNavHost(modifier: Modifier = Modifier) {
             }
         },
         floatingActionButton = {
-            if (showBottomBar) {
+            if (showBottomBar && currentRoute != Screen.Settings.route) {
                 ExtendedFloatingActionButton(
                     onClick = {
                         expenseToEdit = null
