@@ -19,10 +19,13 @@ import androidx.compose.foundation.verticalScroll
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import com.muyeedahmed.exlexp.ui.components.AppDatePickerDialog
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
@@ -89,6 +92,7 @@ fun SettingsScreen(
     var newAccountName by remember { mutableStateOf("") }
     var newAccountType by remember { mutableStateOf("Checking") }
     var newAccountDate by remember { mutableStateOf(LocalDate.now().toString()) }
+    var showAccountDatePicker by remember { mutableStateOf(false) }
 
     var showAuthDialog by remember { mutableStateOf(false) }
     var isSignUpMode by remember { mutableStateOf(false) }
@@ -490,13 +494,26 @@ fun SettingsScreen(
                             }
                         }
 
-                        OutlinedTextField(
-                            value = newAccountDate,
-                            onValueChange = { newAccountDate = it },
-                            label = { Text("Open Date (YYYY-MM-DD)") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            OutlinedTextField(
+                                value = newAccountDate,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Open Date") },
+                                trailingIcon = {
+                                    IconButton(onClick = { showAccountDatePicker = true }) {
+                                        Icon(Icons.Default.CalendarToday, contentDescription = "Pick Date")
+                                    }
+                                },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .clickable { showAccountDatePicker = true }
+                            )
+                        }
                     }
                 },
                 confirmButton = {
@@ -517,6 +534,17 @@ fun SettingsScreen(
                         Text("Cancel")
                     }
                 }
+            )
+        }
+
+        if (showAccountDatePicker) {
+            AppDatePickerDialog(
+                initialDate = newAccountDate,
+                onDateSelected = { selectedDate ->
+                    newAccountDate = selectedDate
+                    showAccountDatePicker = false
+                },
+                onDismiss = { showAccountDatePicker = false }
             )
         }
 

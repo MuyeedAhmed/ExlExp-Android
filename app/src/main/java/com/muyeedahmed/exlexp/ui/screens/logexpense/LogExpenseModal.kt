@@ -4,7 +4,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.CalendarMonth
+import com.muyeedahmed.exlexp.ui.components.AppDatePickerDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -173,6 +177,10 @@ fun LogExpenseModal(
     val isSavings = selectedCard?.isSaving == true
 
     var categoryExpanded by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var accountDropdownExpanded by remember { mutableStateOf(false) }
+    var sourceAccountDropdownExpanded by remember { mutableStateOf(false) }
+    var targetAccountDropdownExpanded by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -275,7 +283,7 @@ fun LogExpenseModal(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // Date Input & Quick Presets
+            // Date Input with DatePicker
             Text(
                 text = "DATE",
                 style = MaterialTheme.typography.labelSmall,
@@ -283,23 +291,44 @@ fun LogExpenseModal(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(6.dp))
-            OutlinedTextField(
-                value = dateText,
-                onValueChange = { dateText = it },
-                singleLine = true,
-                placeholder = { Text("YYYY-MM-DD") },
-                textStyle = androidx.compose.ui.text.TextStyle(
-                    fontSize = 14.sp,
-                    fontFamily = FontFamily.Monospace,
-                    color = MaterialTheme.colorScheme.onSurface
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
+            Box(modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value = dateText,
+                    onValueChange = {},
+                    readOnly = true,
+                    placeholder = { Text("YYYY-MM-DD") },
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.CalendarMonth,
+                            contentDescription = "Select Date"
+                        )
+                    },
+                    textStyle = androidx.compose.ui.text.TextStyle(
+                        fontSize = 14.sp,
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.onSurface
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clickable { showDatePicker = true }
+                )
+            }
+
+            if (showDatePicker) {
+                AppDatePickerDialog(
+                    initialDate = dateText,
+                    onDateSelected = { dateText = it },
+                    onDismiss = { showDatePicker = false }
+                )
+            }
 
             Spacer(modifier = Modifier.height(14.dp))
 
             if (mode == ModalMode.TRANSACTION) {
-                // Account Selector Chips
+                // Payment Account / Card Dropdown
                 Text(
                     text = "PAYMENT ACCOUNT / CARD",
                     style = MaterialTheme.typography.labelSmall,
@@ -307,34 +336,51 @@ fun LogExpenseModal(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(6.dp))
-                val chipScrollState = rememberScrollState()
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(chipScrollState),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ExposedDropdownMenuBox(
+                    expanded = accountDropdownExpanded,
+                    onExpandedChange = { accountDropdownExpanded = !accountDropdownExpanded },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    cards.forEach { card ->
-                        val isSelected = card.id == selectedCardId
-                        val icon = when {
-                            card.isChecking -> Icons.Default.AccountBalance
-                            card.isSaving -> Icons.Default.Savings
-                            card.isBrokerage -> Icons.Default.TrendingUp
-                            else -> Icons.Default.CreditCard
-                        }
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = { selectedCardId = card.id },
-                            label = { Text(card.name, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
-                            leadingIcon = {
-                                Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp))
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    OutlinedTextField(
+                        value = selectedCard?.name ?: "Select account / card",
+                        onValueChange = {},
+                        readOnly = true,
+                        leadingIcon = {
+                            selectedCard?.let { card ->
+                                val icon = when {
+                                    card.isChecking -> Icons.Default.AccountBalance
+                                    card.isSaving -> Icons.Default.Savings
+                                    card.isBrokerage -> Icons.AutoMirrored.Filled.TrendingUp
+                                    else -> Icons.Default.CreditCard
+                                }
+                                Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
+                            }
+                        },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = accountDropdownExpanded) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = accountDropdownExpanded,
+                        onDismissRequest = { accountDropdownExpanded = false }
+                    ) {
+                        cards.forEach { card ->
+                            val icon = when {
+                                card.isChecking -> Icons.Default.AccountBalance
+                                card.isSaving -> Icons.Default.Savings
+                                card.isBrokerage -> Icons.AutoMirrored.Filled.TrendingUp
+                                else -> Icons.Default.CreditCard
+                            }
+                            DropdownMenuItem(
+                                text = { Text(card.name) },
+                                leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                                onClick = {
+                                    selectedCardId = card.id
+                                    accountDropdownExpanded = false
+                                }
                             )
-                        )
+                        }
                     }
                 }
 
@@ -381,14 +427,14 @@ fun LogExpenseModal(
                         FilterChip(
                             selected = !isDepositInflow,
                             onClick = { isDepositInflow = false },
-                            label = { Text("Money Out (Debit / Expense)", fontWeight = if (!isDepositInflow) FontWeight.Bold else FontWeight.Normal) },
+                            label = { Text("To", fontWeight = if (!isDepositInflow) FontWeight.Bold else FontWeight.Normal) },
                             leadingIcon = { Icon(Icons.Default.ArrowUpward, contentDescription = null, modifier = Modifier.size(16.dp)) },
                             modifier = Modifier.weight(1f)
                         )
                         FilterChip(
                             selected = isDepositInflow,
                             onClick = { isDepositInflow = true },
-                            label = { Text("Money In (Deposit / Income)", fontWeight = if (isDepositInflow) FontWeight.Bold else FontWeight.Normal) },
+                            label = { Text("From", fontWeight = if (isDepositInflow) FontWeight.Bold else FontWeight.Normal) },
                             leadingIcon = { Icon(Icons.Default.ArrowDownward, contentDescription = null, modifier = Modifier.size(16.dp)) },
                             modifier = Modifier.weight(1f)
                         )
@@ -546,8 +592,8 @@ fun LogExpenseModal(
                 ) {
                     OutlinedTextField(
                         value = categoryText,
-                        onValueChange = { categoryText = it },
-                        readOnly = false,
+                        onValueChange = {},
+                        readOnly = true,
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -570,6 +616,9 @@ fun LogExpenseModal(
                 }
             } else {
                 // ==================== TRANSFER MODE ====================
+                val sourceCard = cards.find { it.id == sourceCardId }
+                val targetCard = cards.find { it.id == targetCardId }
+
                 Text(
                     text = "SOURCE ACCOUNT (FROM)",
                     style = MaterialTheme.typography.labelSmall,
@@ -577,27 +626,41 @@ fun LogExpenseModal(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(6.dp))
-                val sourceScroll = rememberScrollState()
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(sourceScroll),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ExposedDropdownMenuBox(
+                    expanded = sourceAccountDropdownExpanded,
+                    onExpandedChange = { sourceAccountDropdownExpanded = !sourceAccountDropdownExpanded },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    cards.filter { it.accountType.isDeposit }.forEach { card ->
-                        val isSelected = card.id == sourceCardId
-                        val icon = if (card.isSaving) Icons.Default.Savings else Icons.Default.AccountBalance
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = { sourceCardId = card.id },
-                            label = { Text(card.name, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
-                            leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp)) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    OutlinedTextField(
+                        value = sourceCard?.name ?: "Select source account",
+                        onValueChange = {},
+                        readOnly = true,
+                        leadingIcon = {
+                            sourceCard?.let { card ->
+                                val icon = if (card.isSaving) Icons.Default.Savings else Icons.Default.AccountBalance
+                                Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
+                            }
+                        },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = sourceAccountDropdownExpanded) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = sourceAccountDropdownExpanded,
+                        onDismissRequest = { sourceAccountDropdownExpanded = false }
+                    ) {
+                        cards.filter { it.accountType.isDeposit }.forEach { card ->
+                            val icon = if (card.isSaving) Icons.Default.Savings else Icons.Default.AccountBalance
+                            DropdownMenuItem(
+                                text = { Text(card.name) },
+                                leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                                onClick = {
+                                    sourceCardId = card.id
+                                    sourceAccountDropdownExpanded = false
+                                }
                             )
-                        )
+                        }
                     }
                 }
 
@@ -610,37 +673,54 @@ fun LogExpenseModal(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(6.dp))
-                val targetScroll = rememberScrollState()
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(targetScroll),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ExposedDropdownMenuBox(
+                    expanded = targetAccountDropdownExpanded,
+                    onExpandedChange = { targetAccountDropdownExpanded = !targetAccountDropdownExpanded },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    cards.filter { it.id != sourceCardId }.forEach { card ->
-                        val isSelected = card.id == targetCardId
-                        val icon = when {
-                            card.isChecking -> Icons.Default.AccountBalance
-                            card.isSaving -> Icons.Default.Savings
-                            card.isBrokerage -> Icons.Default.TrendingUp
-                            else -> Icons.Default.CreditCard
-                        }
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = {
-                                targetCardId = card.id
-                                if (!card.accountType.isDeposit) {
-                                    isCcBillPay = true
+                    OutlinedTextField(
+                        value = targetCard?.name ?: "Select target account",
+                        onValueChange = {},
+                        readOnly = true,
+                        leadingIcon = {
+                            targetCard?.let { card ->
+                                val icon = when {
+                                    card.isChecking -> Icons.Default.AccountBalance
+                                    card.isSaving -> Icons.Default.Savings
+                                    card.isBrokerage -> Icons.AutoMirrored.Filled.TrendingUp
+                                    else -> Icons.Default.CreditCard
                                 }
-                            },
-                            label = { Text(card.name, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
-                            leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp)) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
+                            }
+                        },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = targetAccountDropdownExpanded) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = targetAccountDropdownExpanded,
+                        onDismissRequest = { targetAccountDropdownExpanded = false }
+                    ) {
+                        cards.filter { it.id != sourceCardId }.forEach { card ->
+                            val icon = when {
+                                card.isChecking -> Icons.Default.AccountBalance
+                                card.isSaving -> Icons.Default.Savings
+                                card.isBrokerage -> Icons.AutoMirrored.Filled.TrendingUp
+                                else -> Icons.Default.CreditCard
+                            }
+                            DropdownMenuItem(
+                                text = { Text(card.name) },
+                                leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                                onClick = {
+                                    targetCardId = card.id
+                                    if (!card.accountType.isDeposit) {
+                                        isCcBillPay = true
+                                    }
+                                    targetAccountDropdownExpanded = false
+                                }
                             )
-                        )
+                        }
                     }
                 }
 
