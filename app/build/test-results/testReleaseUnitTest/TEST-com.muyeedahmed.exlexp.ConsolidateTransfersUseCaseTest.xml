@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.muyeedahmed.exlexp.ConsolidateTransfersUseCaseTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-05T16:09:10" hostname="MacBookAir.fios-router.home" time="0.001">
+  <properties/>
+  <testcase name="testConsolidateTransfersHidesIncomingLegInMasterFeed" classname="com.muyeedahmed.exlexp.ConsolidateTransfersUseCaseTest" time="0.001"/>
+  <testcase name="testIncomingTransferIdentification" classname="com.muyeedahmed.exlexp.ConsolidateTransfersUseCaseTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
