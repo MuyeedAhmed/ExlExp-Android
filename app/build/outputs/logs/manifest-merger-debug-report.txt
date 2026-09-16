@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:2:1-29:12
-INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:2:1-29:12
-INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:2:1-29:12
-INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:2:1-29:12
+ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:2:1-29:12
+INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:2:1-29:12
+INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:2:1-29:12
+INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:2:1-29:12
 MERGED from [androidx.work:work-runtime-ktx:2.9.1] /Users/muyeedahmed/.gradle/caches/8.9/transforms/fc3eb653d63d93c6bdb29476bd7226c2/transformed/work-runtime-ktx-2.9.1/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.work:work-runtime:2.9.1] /Users/muyeedahmed/.gradle/caches/8.9/transforms/4cd8cc2767088ea7d6da120022efd502/transformed/work-runtime-2.9.1/AndroidManifest.xml:17:1-145:12
 MERGED from [androidx.hilt:hilt-navigation-compose:1.2.0] /Users/muyeedahmed/.gradle/caches/8.9/transforms/ebe3493a5644e4e718d5e41a52a5b56c/transformed/hilt-navigation-compose-1.2.0/AndroidManifest.xml:2:1-7:12
@@ -93,26 +93,26 @@ MERGED from [co.touchlab:kermit-android-debug:2.0.4] /Users/muyeedahmed/.gradle/
 MERGED from [co.touchlab:kermit-core-android-debug:2.0.4] /Users/muyeedahmed/.gradle/caches/8.9/transforms/ca8280deedf9727446935f3b4aea3862/transformed/kermit-core-debug/AndroidManifest.xml:2:1-7:12
 MERGED from [com.google.dagger:dagger-lint-aar:2.51.1] /Users/muyeedahmed/.gradle/caches/8.9/transforms/d278466bc9a3086d6e14766daff3cd1a/transformed/dagger-lint-aar-2.51.1/AndroidManifest.xml:16:1-19:12
 	package
-		INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml
 	android:versionName
-		INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml
 	android:versionCode
-		INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml
 	xmlns:android
-		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:2:11-69
+		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:2:11-69
 uses-permission#android.permission.INTERNET
-ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:4:5-67
+ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:4:5-67
 	android:name
-		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:4:22-64
+		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:4:22-64
 uses-permission#android.permission.ACCESS_NETWORK_STATE
-ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:5:5-79
+ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:5:5-79
 MERGED from [androidx.work:work-runtime:2.9.1] /Users/muyeedahmed/.gradle/caches/8.9/transforms/4cd8cc2767088ea7d6da120022efd502/transformed/work-runtime-2.9.1/AndroidManifest.xml:24:5-79
 MERGED from [androidx.work:work-runtime:2.9.1] /Users/muyeedahmed/.gradle/caches/8.9/transforms/4cd8cc2767088ea7d6da120022efd502/transformed/work-runtime-2.9.1/AndroidManifest.xml:24:5-79
 	android:name
-		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:5:22-76
+		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:5:22-76
 application
-ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:7:5-27:19
-INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:7:5-27:19
+ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:7:5-27:19
+INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:7:5-27:19
 MERGED from [androidx.work:work-runtime:2.9.1] /Users/muyeedahmed/.gradle/caches/8.9/transforms/4cd8cc2767088ea7d6da120022efd502/transformed/work-runtime-2.9.1/AndroidManifest.xml:28:5-143:19
 MERGED from [androidx.work:work-runtime:2.9.1] /Users/muyeedahmed/.gradle/caches/8.9/transforms/4cd8cc2767088ea7d6da120022efd502/transformed/work-runtime-2.9.1/AndroidManifest.xml:28:5-143:19
 MERGED from [androidx.room:room-runtime:2.6.1] /Users/muyeedahmed/.gradle/caches/8.9/transforms/061bffe0f57ff22d22dff5c0c5cae3cc/transformed/room-runtime-2.6.1/AndroidManifest.xml:23:5-29:19
@@ -138,51 +138,51 @@ MERGED from [com.russhwolf:multiplatform-settings-no-arg-android-debug:1.1.1] /U
 MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/muyeedahmed/.gradle/caches/8.9/transforms/35ad6f6faa2e7acbf20e586f31fe98d2/transformed/startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
 MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/muyeedahmed/.gradle/caches/8.9/transforms/35ad6f6faa2e7acbf20e586f31fe98d2/transformed/startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
 	android:extractNativeLibs
-		INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.13.1] /Users/muyeedahmed/.gradle/caches/8.9/transforms/51019841ee30a5c233119903e9354c98/transformed/core-1.13.1/AndroidManifest.xml:28:18-86
 	android:supportsRtl
-		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:15:9-35
+		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:15:9-35
 	android:label
-		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:13:9-41
+		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:13:9-41
 	android:fullBackupContent
-		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:11:9-42
+		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:11:9-42
 	android:roundIcon
-		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:14:9-63
+		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:14:9-63
 	android:icon
-		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:12:9-58
+		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:12:9-58
 	android:allowBackup
-		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:9:9-35
+		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:9:9-35
 	android:theme
-		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:16:9-44
+		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:16:9-44
 	android:dataExtractionRules
-		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:10:9-44
+		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:10:9-44
 	android:name
-		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:8:9-34
+		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:8:9-34
 activity#com.muyeedahmed.exlexp.MainActivity
-ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:17:9-26:20
+ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:17:9-26:20
 	android:windowSoftInputMode
-		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:20:13-55
+		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:20:13-55
 	android:exported
-		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:19:13-36
+		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:19:13-36
 	android:theme
-		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:21:13-48
+		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:21:13-48
 	android:name
-		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:18:13-41
+		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:18:13-41
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:22:13-25:29
+ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:22:13-25:29
 action#android.intent.action.MAIN
-ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:23:17-69
+ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:23:17-69
 	android:name
-		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:23:25-66
+		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:23:25-66
 category#android.intent.category.LAUNCHER
-ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:24:17-77
+ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:24:17-77
 	android:name
-		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml:24:27-74
+		ADDED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml:24:27-74
 uses-sdk
-INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
-INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml
-INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml
+INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml
+INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml
 MERGED from [androidx.work:work-runtime-ktx:2.9.1] /Users/muyeedahmed/.gradle/caches/8.9/transforms/fc3eb653d63d93c6bdb29476bd7226c2/transformed/work-runtime-ktx-2.9.1/AndroidManifest.xml:20:5-44
 MERGED from [androidx.work:work-runtime-ktx:2.9.1] /Users/muyeedahmed/.gradle/caches/8.9/transforms/fc3eb653d63d93c6bdb29476bd7226c2/transformed/work-runtime-ktx-2.9.1/AndroidManifest.xml:20:5-44
 MERGED from [androidx.work:work-runtime:2.9.1] /Users/muyeedahmed/.gradle/caches/8.9/transforms/4cd8cc2767088ea7d6da120022efd502/transformed/work-runtime-2.9.1/AndroidManifest.xml:21:5-44
@@ -360,9 +360,9 @@ MERGED from [co.touchlab:kermit-core-android-debug:2.0.4] /Users/muyeedahmed/.gr
 MERGED from [com.google.dagger:dagger-lint-aar:2.51.1] /Users/muyeedahmed/.gradle/caches/8.9/transforms/d278466bc9a3086d6e14766daff3cd1a/transformed/dagger-lint-aar-2.51.1/AndroidManifest.xml:18:3-42
 MERGED from [com.google.dagger:dagger-lint-aar:2.51.1] /Users/muyeedahmed/.gradle/caches/8.9/transforms/d278466bc9a3086d6e14766daff3cd1a/transformed/dagger-lint-aar-2.51.1/AndroidManifest.xml:18:3-42
 	android:targetSdkVersion
-		INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml
 	android:minSdkVersion
-		INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp/ExlExp-Android/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/muyeedahmed/Desktop/Gitcode/ExlExp-Android/app/src/main/AndroidManifest.xml
 uses-permission#android.permission.WAKE_LOCK
 ADDED from [androidx.work:work-runtime:2.9.1] /Users/muyeedahmed/.gradle/caches/8.9/transforms/4cd8cc2767088ea7d6da120022efd502/transformed/work-runtime-2.9.1/AndroidManifest.xml:23:5-68
 	android:name

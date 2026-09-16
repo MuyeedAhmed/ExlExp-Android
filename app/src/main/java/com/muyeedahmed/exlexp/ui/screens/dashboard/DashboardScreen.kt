@@ -1,7 +1,6 @@
 package com.muyeedahmed.exlexp.ui.screens.dashboard
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,11 +15,30 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.EventNote
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.filled.Wallet
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -31,7 +49,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -42,19 +59,9 @@ import com.muyeedahmed.exlexp.domain.model.Expense
 import com.muyeedahmed.exlexp.ui.components.CategoryDonutChart
 import com.muyeedahmed.exlexp.ui.components.TransactionRowItem
 import com.muyeedahmed.exlexp.ui.components.TrendBarChart
-import com.muyeedahmed.exlexp.ui.theme.BorderTable
-import com.muyeedahmed.exlexp.ui.theme.DangerBg
-import com.muyeedahmed.exlexp.ui.theme.DangerBorder
-import com.muyeedahmed.exlexp.ui.theme.HeaderRowBg
-import com.muyeedahmed.exlexp.ui.theme.LabelSlate
 import com.muyeedahmed.exlexp.ui.theme.MonoFontFamily
 import com.muyeedahmed.exlexp.ui.theme.NegativeRed
-import com.muyeedahmed.exlexp.ui.theme.NeutralGray
 import com.muyeedahmed.exlexp.ui.theme.PositiveGreen
-import com.muyeedahmed.exlexp.ui.theme.PrimarySlate
-import com.muyeedahmed.exlexp.ui.theme.RowAltBg
-import com.muyeedahmed.exlexp.ui.theme.SubHeaderRowBg
-import com.muyeedahmed.exlexp.ui.theme.TextSlate
 import java.util.Locale
 import kotlin.math.abs
 
@@ -75,160 +82,149 @@ fun DashboardScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(scrollState)
             .padding(16.dp)
-            .padding(bottom = 60.dp)
+            .padding(bottom = 80.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // =========================================================
-        // 1. FINANCIAL SUMMARY (Spreadsheet Grid Style)
+        // 1. FINANCIAL SUMMARY (Material 3 KPI Cards)
         // =========================================================
-        Text(
-            text = "Financial Summary",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = PrimarySlate,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
-
-        // Main Balances Grid Table
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(4.dp))
-                .border(1.dp, BorderTable, RoundedCornerShape(4.dp))
-                .background(Color.White)
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
         ) {
-            // Header Row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(HeaderRowBg)
-                    .border(width = 0.5.dp, color = BorderTable)
-                    .padding(vertical = 8.dp, horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Account Description",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextSlate,
-                    modifier = Modifier.weight(2f)
-                )
-                Text(
-                    text = "Balance Value",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextSlate,
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            Column(modifier = Modifier.padding(18.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Net Financial Position",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    val netPos = uiState.summary.netBalance
+                    val isPositive = netPos >= 0
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(if (isPositive) PositiveGreen.copy(alpha = 0.12f) else NegativeRed.copy(alpha = 0.12f))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = if (isPositive) "Positive Balance" else "Net Deficit",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isPositive) PositiveGreen else NegativeRed
+                        )
+                    }
+                }
 
-            // Total Checking Balance Row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(width = 0.5.dp, color = BorderTable)
-                    .padding(vertical = 6.dp, horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Total Checking Balance",
-                    fontSize = 13.sp,
-                    color = TextSlate,
-                    modifier = Modifier.weight(2f)
-                )
-                Text(
-                    text = String.format(Locale.US, "$%,.2f", uiState.summary.totalCheckingBalance),
-                    fontSize = 13.sp,
-                    fontFamily = MonoFontFamily,
-                    color = PositiveGreen,
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.weight(1f)
-                )
-            }
+                Spacer(modifier = Modifier.height(6.dp))
 
-            // Total Credit Card Debt Row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(width = 0.5.dp, color = BorderTable)
-                    .padding(vertical = 6.dp, horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Total Credit Card Debt",
-                    fontSize = 13.sp,
-                    color = TextSlate,
-                    modifier = Modifier.weight(2f)
-                )
-                val isDebtPositive = uiState.summary.totalCreditCardDebt > 0.005
-                Text(
-                    text = String.format(Locale.US, "$%,.2f", uiState.summary.totalCreditCardDebt),
-                    fontSize = 13.sp,
-                    fontFamily = MonoFontFamily,
-                    color = if (isDebtPositive) NegativeRed else TextSlate,
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            // Upcoming Scheduled Bills Row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(width = 0.5.dp, color = BorderTable)
-                    .padding(vertical = 6.dp, horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Upcoming Scheduled Bills",
-                    fontSize = 13.sp,
-                    color = TextSlate,
-                    modifier = Modifier.weight(2f)
-                )
-                val hasBills = uiState.summary.totalFutureExpenses > 0.005
-                Text(
-                    text = String.format(Locale.US, "$%,.2f", uiState.summary.totalFutureExpenses),
-                    fontSize = 13.sp,
-                    fontFamily = MonoFontFamily,
-                    color = if (hasBills) NegativeRed else TextSlate,
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            // Net Financial Position Row (Highlighted)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(RowAltBg)
-                    .border(width = 0.5.dp, color = BorderTable)
-                    .padding(vertical = 8.dp, horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Net Financial Position",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimarySlate,
-                    modifier = Modifier.weight(2f)
-                )
                 val netPos = uiState.summary.netBalance
                 Text(
                     text = String.format(Locale.US, (if (netPos < -0.005) "-$%,.2f" else "$%,.2f"), abs(netPos)),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.ExtraBold,
                     fontFamily = MonoFontFamily,
-                    color = if (netPos < -0.005) NegativeRed else PrimarySlate,
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.weight(1f)
+                    color = if (netPos < -0.005) NegativeRed else MaterialTheme.colorScheme.onSurface
                 )
+
+                Spacer(modifier = Modifier.height(16.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // 3 Sub-Metrics Grid
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Liquid Checking
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.AccountBalance,
+                                contentDescription = null,
+                                tint = PositiveGreen,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Checking Cash",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = String.format(Locale.US, "$%,.2f", uiState.summary.totalCheckingBalance),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = MonoFontFamily,
+                            color = PositiveGreen
+                        )
+                    }
+
+                    // Total CC Debt
+                    Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.CreditCard,
+                                contentDescription = null,
+                                tint = if (uiState.summary.totalCreditCardDebt > 0.005) NegativeRed else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Card Debt",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = String.format(Locale.US, "$%,.2f", uiState.summary.totalCreditCardDebt),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = MonoFontFamily,
+                            color = if (uiState.summary.totalCreditCardDebt > 0.005) NegativeRed else MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    // Scheduled Bills
+                    Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.ReceiptLong,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Upcoming Bills",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = String.format(Locale.US, "$%,.2f", uiState.summary.totalFutureExpenses),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = MonoFontFamily,
+                            color = if (uiState.summary.totalFutureExpenses > 0.005) NegativeRed else MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
             }
         }
-
-        Spacer(modifier = Modifier.height(20.dp))
 
         // =========================================================
         // 2. 12-MONTH SPENDING TREND (BAR CHART)
@@ -238,8 +234,6 @@ fun DashboardScreen(
             selectedMonthKey = uiState.selectedMonthKey,
             onMonthSelected = { viewModel.selectMonth(it) }
         )
-
-        Spacer(modifier = Modifier.height(8.dp))
 
         // =========================================================
         // 3. SPENDING DISTRIBUTION (DONUT WHEEL & BREAKDOWN)
@@ -251,346 +245,277 @@ fun DashboardScreen(
             onMonthSelected = { viewModel.selectMonth(it) }
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
-
         // =========================================================
-        // 4. RECENT TRANSACTIONS (Spreadsheet Grid Style)
+        // 4. RECENT TRANSACTIONS (Material 3 Card)
         // =========================================================
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(4.dp))
-                .border(1.dp, BorderTable, RoundedCornerShape(4.dp))
-                .background(Color.White)
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
         ) {
-            // Header Row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(HeaderRowBg)
-                    .border(width = 0.5.dp, color = BorderTable)
-                    .padding(vertical = 8.dp, horizontal = 8.dp)
-            ) {
-                Text(
-                    text = "Recent Transactions",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextSlate
-                )
-            }
-
-            if (uiState.recentTransactions.isEmpty()) {
-                Box(
+            Column {
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "No transactions recorded yet.",
-                        fontSize = 13.sp,
-                        color = NeutralGray
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.History,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Recent Transactions",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    TextButton(onClick = onNavigateToAllTransactions) {
+                        Text("View all", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
                 }
-            } else {
-                uiState.recentTransactions.forEach { item ->
-                    TransactionRowItem(
-                        transaction = item,
-                        onEditClick = null,
-                        onDeleteClick = null
-                    )
-                    HorizontalDivider(color = Color(0xFFF1F5F9), thickness = 0.5.dp)
-                }
-            }
 
-            // Footer Button: Show All Transactions →
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(RowAltBg)
-                    .border(width = 0.5.dp, color = BorderTable)
-                    .clickable { onNavigateToAllTransactions() }
-                    .padding(vertical = 10.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Show all transactions →",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimarySlate
-                )
-            }
-        }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // =========================================================
-        // 5. CHECKING ACCOUNTS REGISTRY (ACTIVE)
-        // =========================================================
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(4.dp))
-                .border(1.dp, BorderTable, RoundedCornerShape(4.dp))
-                .background(Color.White)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(HeaderRowBg)
-                    .border(width = 0.5.dp, color = BorderTable)
-                    .padding(vertical = 8.dp, horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Checking Accounts Registry (Active)",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextSlate,
-                    modifier = Modifier.weight(2f)
-                )
-                Text(
-                    text = "Current Balance",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextSlate,
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            if (uiState.activeCheckingAccounts.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(14.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "No checking accounts with active balance.",
-                        fontSize = 13.sp,
-                        color = NeutralGray
-                    )
-                }
-            } else {
-                uiState.activeCheckingAccounts.forEach { (account, bal) ->
-                    Row(
+                if (uiState.recentTransactions.isEmpty()) {
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .border(width = 0.5.dp, color = BorderTable)
-                            .padding(vertical = 6.dp, horizontal = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(24.dp),
+                        contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "🏛️ ${account.name}",
+                            text = "No transactions recorded yet.",
                             fontSize = 13.sp,
-                            color = TextSlate,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(2f)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Text(
-                            text = String.format(Locale.US, "$%,.2f", bal),
-                            fontSize = 13.sp,
-                            fontFamily = MonoFontFamily,
-                            color = if (bal >= 0.005) PositiveGreen else if (bal < -0.005) NegativeRed else TextSlate,
-                            textAlign = TextAlign.End,
-                            modifier = Modifier.weight(1f)
+                    }
+                } else {
+                    uiState.recentTransactions.forEachIndexed { index, item ->
+                        TransactionRowItem(
+                            transaction = item,
+                            onEditClick = { onEditExpense(item.expense) },
+                            onDeleteClick = null
                         )
+                        if (index < uiState.recentTransactions.size - 1) {
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), thickness = 0.5.dp)
+                        }
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
-
         // =========================================================
-        // 6. CREDIT CARD REGISTRY (ACTIVE)
+        // 5. ACTIVE ACCOUNTS & CARDS (2-Column or Stacked Cards)
         // =========================================================
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(4.dp))
-                .border(1.dp, BorderTable, RoundedCornerShape(4.dp))
-                .background(Color.White)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(HeaderRowBg)
-                    .border(width = 0.5.dp, color = BorderTable)
-                    .padding(vertical = 8.dp, horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
+            // Checking Accounts Registry (Active)
+            ElevatedCard(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
             ) {
-                Text(
-                    text = "Credit Card Registry (Active)",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextSlate,
-                    modifier = Modifier.weight(2f)
-                )
-                Text(
-                    text = "Owed Balance",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextSlate,
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.weight(1f)
-                )
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.AccountBalance,
+                            contentDescription = null,
+                            tint = PositiveGreen,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Active Checking",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    if (uiState.activeCheckingAccounts.isEmpty()) {
+                        Text(
+                            text = "No active balances",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    } else {
+                        uiState.activeCheckingAccounts.forEach { (account, bal) ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = account.name,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f).padding(end = 4.dp)
+                                )
+                                Text(
+                                    text = String.format(Locale.US, "$%,.2f", bal),
+                                    fontSize = 12.sp,
+                                    fontFamily = MonoFontFamily,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (bal >= 0) PositiveGreen else NegativeRed
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
-            if (uiState.activeCreditCards.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(14.dp),
-                    contentAlignment = Alignment.Center
-                ) {
+            // Credit Cards Registry (Active)
+            ElevatedCard(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.CreditCard,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Active Cards",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    if (uiState.activeCreditCards.isEmpty()) {
+                        Text(
+                            text = "No active balances",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    } else {
+                        uiState.activeCreditCards.forEach { (card, bal) ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = card.name,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f).padding(end = 4.dp)
+                                )
+                                Text(
+                                    text = String.format(Locale.US, "$%,.2f", bal),
+                                    fontSize = 12.sp,
+                                    fontFamily = MonoFontFamily,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (bal > 0.005) NegativeRed else PositiveGreen
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // =========================================================
+        // 6. UPCOMING SCHEDULED BILLS (FUTURE EXPENSES)
+        // =========================================================
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.EventNote,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "No credit cards with active balance.",
-                        fontSize = 13.sp,
-                        color = NeutralGray
+                        text = "Upcoming Scheduled Bills",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
-            } else {
-                uiState.activeCreditCards.forEach { (card, bal) ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .border(width = 0.5.dp, color = BorderTable)
-                            .padding(vertical = 6.dp, horizontal = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "💳 ${card.name}",
-                            fontSize = 13.sp,
-                            color = TextSlate,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(2f)
-                        )
-                        Text(
-                            text = String.format(Locale.US, "$%,.2f", bal),
-                            fontSize = 13.sp,
-                            fontFamily = MonoFontFamily,
-                            color = if (bal > 0.005) NegativeRed else if (bal < -0.005) PositiveGreen else TextSlate,
-                            textAlign = TextAlign.End,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            }
-        }
 
-        Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-        // =========================================================
-        // 7. UPCOMING SCHEDULED BILLS (FUTURE EXPENSES)
-        // =========================================================
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(4.dp))
-                .border(1.dp, BorderTable, RoundedCornerShape(4.dp))
-                .background(Color.White)
-        ) {
-            // Header Row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(HeaderRowBg)
-                    .border(width = 0.5.dp, color = BorderTable)
-                    .padding(vertical = 8.dp, horizontal = 8.dp)
-            ) {
-                Text(
-                    text = "Upcoming Scheduled Bills (Future Expenses)",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextSlate
-                )
-            }
-
-            // Inline Add Row Form
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(RowAltBg)
-                    .border(width = 0.5.dp, color = BorderTable)
-                    .padding(6.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Description Input
-                Box(
-                    modifier = Modifier
-                        .weight(2f)
-                        .height(32.dp)
-                        .background(Color.White, RoundedCornerShape(4.dp))
-                        .border(1.dp, BorderTable, RoundedCornerShape(4.dp))
-                        .padding(horizontal = 8.dp),
-                    contentAlignment = Alignment.CenterStart
+                // Modern Add Bill Input Form
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (futureDesc.isEmpty()) {
-                        Text("Bill Name (e.g. Rent)", fontSize = 12.sp, color = NeutralGray)
-                    }
-                    BasicTextField(
+                    OutlinedTextField(
                         value = futureDesc,
                         onValueChange = { futureDesc = it },
+                        placeholder = { Text("Bill (e.g. Rent)", fontSize = 12.sp) },
                         singleLine = true,
-                        textStyle = TextStyle(fontSize = 12.sp, color = PrimarySlate)
+                        modifier = Modifier.weight(1.8f)
                     )
-                }
 
-                // Amount Input
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(32.dp)
-                        .background(Color.White, RoundedCornerShape(4.dp))
-                        .border(1.dp, BorderTable, RoundedCornerShape(4.dp))
-                        .padding(horizontal = 8.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    if (futureAmount.isEmpty()) {
-                        Text("Amount", fontSize = 12.sp, color = NeutralGray)
-                    }
-                    BasicTextField(
+                    OutlinedTextField(
                         value = futureAmount,
                         onValueChange = { futureAmount = it },
+                        placeholder = { Text("$ Amt", fontSize = 12.sp) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        textStyle = TextStyle(fontSize = 12.sp, color = PrimarySlate)
+                        modifier = Modifier.weight(1.1f)
                     )
-                }
 
-                // Due Date Input
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(32.dp)
-                        .background(Color.White, RoundedCornerShape(4.dp))
-                        .border(1.dp, BorderTable, RoundedCornerShape(4.dp))
-                        .padding(horizontal = 8.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    if (futureDate.isEmpty()) {
-                        Text("Due Date", fontSize = 12.sp, color = NeutralGray)
-                    }
-                    BasicTextField(
+                    OutlinedTextField(
                         value = futureDate,
                         onValueChange = { futureDate = it },
+                        placeholder = { Text("Due date", fontSize = 12.sp) },
                         singleLine = true,
-                        textStyle = TextStyle(fontSize = 12.sp, color = PrimarySlate)
+                        modifier = Modifier.weight(1.3f)
                     )
-                }
 
-                // Plus Add Button
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(PrimarySlate)
-                        .clickable {
+                    IconButton(
+                        onClick = {
                             val amt = futureAmount.toDoubleOrNull() ?: 0.0
                             if (futureDesc.isNotBlank() && amt > 0) {
                                 viewModel.addFutureExpense(futureDesc.trim(), amt, futureDate.trim())
@@ -599,119 +524,89 @@ fun DashboardScreen(
                                 futureDate = ""
                             }
                         },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("➕", fontSize = 12.sp, color = Color.White)
+                        modifier = Modifier
+                            .size(42.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.primary)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add Bill",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
-            }
 
-            // Table SubHeader Row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(SubHeaderRowBg)
-                    .border(width = 0.5.dp, color = BorderTable)
-                    .padding(vertical = 6.dp, horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Bill Item",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = LabelSlate,
-                    modifier = Modifier.weight(2f)
-                )
-                Text(
-                    text = "Amount",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = LabelSlate,
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = "Due Date",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = LabelSlate,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.weight(1.2f)
-                )
-                Text(
-                    text = "Action",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = LabelSlate,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.weight(1f)
-                )
-            }
+                Spacer(modifier = Modifier.height(14.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Spacer(modifier = Modifier.height(8.dp))
 
-            if (uiState.futureExpenses.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(14.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "No upcoming scheduled bills logged.",
-                        fontSize = 13.sp,
-                        color = NeutralGray
-                    )
-                }
-            } else {
-                uiState.futureExpenses.forEach { item ->
-                    Row(
+                if (uiState.futureExpenses.isEmpty()) {
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .border(width = 0.5.dp, color = BorderTable)
-                            .padding(vertical = 4.dp, horizontal = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(vertical = 16.dp),
+                        contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = item.description,
+                            text = "No scheduled bills added.",
                             fontSize = 13.sp,
-                            color = TextSlate,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(2f)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Text(
-                            text = String.format(Locale.US, "$%,.2f", item.amount),
-                            fontSize = 13.sp,
-                            fontFamily = MonoFontFamily,
-                            color = TextSlate,
-                            textAlign = TextAlign.End,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Text(
-                            text = item.dueDate ?: "-",
-                            fontSize = 11.sp,
-                            fontFamily = MonoFontFamily,
-                            color = NeutralGray,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.weight(1.2f)
-                        )
-                        Box(
-                            modifier = Modifier.weight(1f),
-                            contentAlignment = Alignment.Center
+                    }
+                } else {
+                    uiState.futureExpenses.forEach { item ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(26.dp)
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(DangerBg)
-                                    .border(1.dp, DangerBorder, RoundedCornerShape(4.dp))
-                                    .clickable { viewModel.deleteFutureExpense(item.id) },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text("🗑️", fontSize = 12.sp)
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = item.description,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                if (!item.dueDate.isNullOrBlank()) {
+                                    Text(
+                                        text = "Due: ${item.dueDate}",
+                                        fontSize = 11.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = String.format(Locale.US, "$%,.2f", item.amount),
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = MonoFontFamily,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                IconButton(
+                                    onClick = { viewModel.deleteFutureExpense(item.id) },
+                                    modifier = Modifier.size(28.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Delete",
+                                        tint = NegativeRed.copy(alpha = 0.8f),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
                             }
                         }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), thickness = 0.5.dp)
                     }
                 }
             }
         }
     }
 }
+

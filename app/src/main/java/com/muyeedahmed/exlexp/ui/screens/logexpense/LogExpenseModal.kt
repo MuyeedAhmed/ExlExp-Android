@@ -4,8 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,28 +13,45 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.filled.Savings
+import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Switch
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -48,21 +63,18 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.muyeedahmed.exlexp.domain.model.CreditCard
 import com.muyeedahmed.exlexp.domain.model.Expense
-import com.muyeedahmed.exlexp.ui.theme.BorderTable
 import com.muyeedahmed.exlexp.ui.theme.PositiveGreen
-import com.muyeedahmed.exlexp.ui.theme.PrimarySlate
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.util.Locale
 import kotlin.math.abs
 
 val STANDARD_CATEGORIES = listOf(
@@ -98,7 +110,7 @@ fun LogExpenseModal(
     }
 
     var amountText by remember {
-        mutableStateOf(existingExpense?.let { String.format(java.util.Locale.US, "%.2f", abs(it.amount)) } ?: "")
+        mutableStateOf(existingExpense?.let { String.format(Locale.US, "%.2f", abs(it.amount)) } ?: "")
     }
     var dateText by remember {
         mutableStateOf(existingExpense?.date ?: LocalDate.now().toString())
@@ -132,7 +144,7 @@ fun LogExpenseModal(
     var isFee by remember { mutableStateOf(existingExpense?.isFee == true) }
     var isReward by remember { mutableStateOf(existingExpense?.isReward == true) }
     var rewardValueText by remember {
-        mutableStateOf(existingExpense?.rewardValue?.let { String.format(java.util.Locale.US, "%.2f", it) } ?: "")
+        mutableStateOf(existingExpense?.rewardValue?.let { String.format(Locale.US, "%.2f", it) } ?: "")
     }
 
     // Transfer specifics
@@ -165,14 +177,15 @@ fun LogExpenseModal(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
-                .padding(bottom = 32.dp)
+                .padding(bottom = 36.dp)
         ) {
             // Header Row
             Row(
@@ -180,18 +193,29 @@ fun LogExpenseModal(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = if (existingExpense != null) "Edit Item" else "Log Expense",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = PrimarySlate
-                )
+                Column {
+                    Text(
+                        text = if (existingExpense != null) "Edit Entry" else "New Entry",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = if (existingExpense != null) "Update transaction details" else "Record an expense, income, or account transfer",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Close", tint = PrimarySlate)
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
 
-            // Success Toast banner
+            // Success Toast Banner
             AnimatedVisibility(
                 visible = showToast,
                 enter = fadeIn(),
@@ -200,72 +224,65 @@ fun LogExpenseModal(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 6.dp)
-                        .background(Color(0xFFDCFCE7), RoundedCornerShape(6.dp))
-                        .border(1.dp, Color(0xFF86EFAC), RoundedCornerShape(6.dp))
-                        .padding(10.dp),
+                        .padding(vertical = 8.dp)
+                        .background(
+                            MaterialTheme.colorScheme.primaryContainer,
+                            RoundedCornerShape(8.dp)
+                        )
+                        .padding(12.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "✅ Entry logged successfully!",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF166534)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Entry logged successfully!",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Mode Selection: Transaction vs Transfer (Only in Create Mode)
+            if (existingExpense == null) {
+                PrimaryTabRow(
+                    selectedTabIndex = if (mode == ModalMode.TRANSACTION) 0 else 1,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Tab(
+                        selected = mode == ModalMode.TRANSACTION,
+                        onClick = { mode = ModalMode.TRANSACTION },
+                        text = { Text("Transaction", fontWeight = FontWeight.Bold) },
+                        icon = { Icon(Icons.Default.ReceiptLong, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                    )
+                    Tab(
+                        selected = mode == ModalMode.TRANSFER,
+                        onClick = { mode = ModalMode.TRANSFER },
+                        text = { Text("Transfer", fontWeight = FontWeight.Bold) },
+                        icon = { Icon(Icons.Default.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp)) }
                     )
                 }
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Mode Toggle: Transaction vs Transfer (if not editing)
-            if (existingExpense == null) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(Color(0xFFF1F5F9))
-                        .padding(3.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(if (mode == ModalMode.TRANSACTION) PrimarySlate else Color.Transparent)
-                            .clickable { mode = ModalMode.TRANSACTION }
-                            .padding(vertical = 8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "📝 Transaction",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (mode == ModalMode.TRANSACTION) Color.White else Color(0xFF475569)
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(if (mode == ModalMode.TRANSFER) PrimarySlate else Color.Transparent)
-                            .clickable { mode = ModalMode.TRANSFER }
-                            .padding(vertical = 8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "🔄 Transfer",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (mode == ModalMode.TRANSFER) Color.White else Color(0xFF475569)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(14.dp))
-            }
-
-            // Date Input with Quick Buttons
-            Text("Date", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF64748B))
-            Spacer(modifier = Modifier.height(4.dp))
+            // Date Input & Quick Presets
+            Text(
+                text = "DATE",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(6.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -275,141 +292,123 @@ fun LogExpenseModal(
                     onValueChange = { dateText = it },
                     singleLine = true,
                     textStyle = androidx.compose.ui.text.TextStyle(
-                        fontSize = 13.sp,
+                        fontSize = 14.sp,
                         fontFamily = FontFamily.Monospace,
-                        color = PrimarySlate
+                        color = MaterialTheme.colorScheme.onSurface
                     ),
                     modifier = Modifier.weight(1f)
                 )
-                Spacer(modifier = Modifier.width(6.dp))
-                TextButton(
+                Spacer(modifier = Modifier.width(8.dp))
+                AssistChip(
                     onClick = { dateText = LocalDate.now().toString() },
-                    modifier = Modifier
-                        .background(Color(0xFFF1F5F9), RoundedCornerShape(6.dp))
-                        .border(1.dp, BorderTable, RoundedCornerShape(6.dp))
-                ) {
-                    Text("Today", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PrimarySlate)
-                }
+                    label = { Text("Today", style = MaterialTheme.typography.labelMedium) }
+                )
                 Spacer(modifier = Modifier.width(4.dp))
-                TextButton(
+                AssistChip(
                     onClick = { dateText = LocalDate.now().minusDays(1).toString() },
-                    modifier = Modifier
-                        .background(Color(0xFFF1F5F9), RoundedCornerShape(6.dp))
-                        .border(1.dp, BorderTable, RoundedCornerShape(6.dp))
-                ) {
-                    Text("Yesterday", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PrimarySlate)
-                }
+                    label = { Text("Yesterday", style = MaterialTheme.typography.labelMedium) }
+                )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             if (mode == ModalMode.TRANSACTION) {
-                // Account Selector Chips with visual icons
-                Text("Select Payment Account / Card", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF64748B))
+                // Account Selector Chips
+                Text(
+                    text = "PAYMENT ACCOUNT / CARD",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Spacer(modifier = Modifier.height(6.dp))
                 val chipScrollState = rememberScrollState()
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .horizontalScroll(chipScrollState),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     cards.forEach { card ->
                         val isSelected = card.id == selectedCardId
-                        val prefix = when {
-                            card.isChecking -> "🏛️ "
-                            card.isSaving -> "💰 "
-                            card.isBrokerage -> "📈 "
-                            else -> "💳 "
+                        val icon = when {
+                            card.isChecking -> Icons.Default.AccountBalance
+                            card.isSaving -> Icons.Default.Savings
+                            card.isBrokerage -> Icons.Default.TrendingUp
+                            else -> Icons.Default.CreditCard
                         }
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(if (isSelected) PrimarySlate else Color(0xFFF1F5F9))
-                                .border(
-                                    1.dp,
-                                    if (isSelected) PrimarySlate else BorderTable,
-                                    RoundedCornerShape(6.dp)
-                                )
-                                .clickable { selectedCardId = card.id }
-                                .padding(horizontal = 12.dp, vertical = 7.dp)
-                        ) {
-                            Text(
-                                text = "$prefix${card.name}",
-                                fontSize = 12.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isSelected) Color.White else PrimarySlate
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { selectedCardId = card.id },
+                            label = { Text(card.name, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
+                            leadingIcon = {
+                                Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp))
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
                             )
-                        }
+                        )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
 
                 // Amount Input
-                Text("Amount ($)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF64748B))
-                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "AMOUNT ($)",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(6.dp))
                 OutlinedTextField(
                     value = amountText,
                     onValueChange = { amountText = it },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
+                    placeholder = { Text("0.00") },
                     textStyle = androidx.compose.ui.text.TextStyle(
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                         fontFamily = FontFamily.Monospace,
-                        color = PrimarySlate
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
                 if (isDeposit) {
-                    // Deposit / Withdrawal Toggle
+                    // Deposit / Withdrawal Flow Toggle
+                    Text(
+                        text = "CASH FLOW DIRECTION",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("Direction:", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = PrimarySlate)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(Color(0xFFF1F5F9))
-                                .padding(2.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(if (!isDepositInflow) PrimarySlate else Color.Transparent)
-                                    .clickable { isDepositInflow = false }
-                                    .padding(horizontal = 10.dp, vertical = 6.dp)
-                            ) {
-                                Text(
-                                    "To (Money Out)",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (!isDepositInflow) Color.White else Color(0xFF475569)
-                                )
-                            }
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(4.dp))
-                                    .background(if (isDepositInflow) PositiveGreen else Color.Transparent)
-                                    .clickable { isDepositInflow = true }
-                                    .padding(horizontal = 10.dp, vertical = 6.dp)
-                            ) {
-                                Text(
-                                    "From (Money In)",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isDepositInflow) Color.White else Color(0xFF475569)
-                                )
-                            }
-                        }
+                        FilterChip(
+                            selected = !isDepositInflow,
+                            onClick = { isDepositInflow = false },
+                            label = { Text("Money Out (Debit / Expense)", fontWeight = if (!isDepositInflow) FontWeight.Bold else FontWeight.Normal) },
+                            leadingIcon = { Icon(Icons.Default.ArrowUpward, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                            modifier = Modifier.weight(1f)
+                        )
+                        FilterChip(
+                            selected = isDepositInflow,
+                            onClick = { isDepositInflow = true },
+                            label = { Text("Money In (Deposit / Income)", fontWeight = if (isDepositInflow) FontWeight.Bold else FontWeight.Normal) },
+                            leadingIcon = { Icon(Icons.Default.ArrowDownward, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                            modifier = Modifier.weight(1f)
+                        )
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     // Savings Interest Checkbox
                     if (isSavings) {
@@ -426,7 +425,7 @@ fun LogExpenseModal(
                                     }
                                 }
                             )
-                            Text("HYSA Interest Earned", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                            Text("HYSA Interest Earned", style = MaterialTheme.typography.bodyMedium)
                         }
                     }
 
@@ -437,34 +436,36 @@ fun LogExpenseModal(
                                 checked = isZelle,
                                 onCheckedChange = { isZelle = it }
                             )
-                            Text("Zelle Transaction", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                            Text("Zelle Transaction", style = MaterialTheme.typography.bodyMedium)
                         }
 
                         if (isZelle) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(Color(0xFFF8FAFC), RoundedCornerShape(6.dp))
-                                    .border(1.dp, BorderTable, RoundedCornerShape(6.dp))
-                                    .padding(10.dp)
+                            ElevatedCard(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = CardDefaults.elevatedCardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+                                )
                             ) {
-                                OutlinedTextField(
-                                    value = zelleName,
-                                    onValueChange = { zelleName = it },
-                                    label = { Text("Zelle Recipient / Sender Name") },
-                                    singleLine = true,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                                Spacer(modifier = Modifier.height(6.dp))
-                                OutlinedTextField(
-                                    value = zelleDetails,
-                                    onValueChange = { zelleDetails = it },
-                                    label = { Text("Zelle Memo / Notes (Optional)") },
-                                    singleLine = true,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    OutlinedTextField(
+                                        value = zelleName,
+                                        onValueChange = { zelleName = it },
+                                        label = { Text("Recipient / Sender Name") },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    OutlinedTextField(
+                                        value = zelleDetails,
+                                        onValueChange = { zelleDetails = it },
+                                        label = { Text("Zelle Memo / Notes (Optional)") },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
                             }
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(10.dp))
                         } else {
                             OutlinedTextField(
                                 value = fromToText,
@@ -497,7 +498,7 @@ fun LogExpenseModal(
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -511,7 +512,7 @@ fun LogExpenseModal(
                                     }
                                 }
                             )
-                            Text("Reward / Credit", fontSize = 12.sp)
+                            Text("Reward / Credit", style = MaterialTheme.typography.bodyMedium)
                         }
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -525,7 +526,7 @@ fun LogExpenseModal(
                                     }
                                 }
                             )
-                            Text("Annual Fee", fontSize = 12.sp)
+                            Text("Annual Fee", style = MaterialTheme.typography.bodyMedium)
                         }
                     }
 
@@ -545,8 +546,13 @@ fun LogExpenseModal(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Category Selector
-                Text("Category", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF64748B))
-                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "CATEGORY",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(6.dp))
                 ExposedDropdownMenuBox(
                     expanded = categoryExpanded,
                     onExpandedChange = { categoryExpanded = !categoryExpanded },
@@ -578,104 +584,100 @@ fun LogExpenseModal(
                 }
             } else {
                 // ==================== TRANSFER MODE ====================
-                Text("Source Account (Where money comes from)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF64748B))
+                Text(
+                    text = "SOURCE ACCOUNT (FROM)",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Spacer(modifier = Modifier.height(6.dp))
                 val sourceScroll = rememberScrollState()
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .horizontalScroll(sourceScroll),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     cards.filter { it.accountType.isDeposit }.forEach { card ->
                         val isSelected = card.id == sourceCardId
-                        val prefix = when {
-                            card.isChecking -> "🏛️ "
-                            card.isSaving -> "💰 "
-                            card.isBrokerage -> "📈 "
-                            else -> "💳 "
-                        }
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(if (isSelected) PrimarySlate else Color(0xFFF1F5F9))
-                                .border(
-                                    1.dp,
-                                    if (isSelected) PrimarySlate else BorderTable,
-                                    RoundedCornerShape(6.dp)
-                                )
-                                .clickable { sourceCardId = card.id }
-                                .padding(horizontal = 12.dp, vertical = 7.dp)
-                        ) {
-                            Text(
-                                text = "$prefix${card.name}",
-                                fontSize = 12.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isSelected) Color.White else PrimarySlate
+                        val icon = if (card.isSaving) Icons.Default.Savings else Icons.Default.AccountBalance
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { sourceCardId = card.id },
+                            label = { Text(card.name, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
+                            leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
                             )
-                        }
+                        )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                Text("Target Account (Where money goes to)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF64748B))
+                Text(
+                    text = "TARGET ACCOUNT (TO)",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Spacer(modifier = Modifier.height(6.dp))
                 val targetScroll = rememberScrollState()
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .horizontalScroll(targetScroll),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     cards.filter { it.id != sourceCardId }.forEach { card ->
                         val isSelected = card.id == targetCardId
-                        val prefix = when {
-                            card.isChecking -> "🏛️ "
-                            card.isSaving -> "💰 "
-                            card.isBrokerage -> "📈 "
-                            else -> "💳 "
+                        val icon = when {
+                            card.isChecking -> Icons.Default.AccountBalance
+                            card.isSaving -> Icons.Default.Savings
+                            card.isBrokerage -> Icons.Default.TrendingUp
+                            else -> Icons.Default.CreditCard
                         }
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(if (isSelected) PrimarySlate else Color(0xFFF1F5F9))
-                                .border(
-                                    1.dp,
-                                    if (isSelected) PrimarySlate else BorderTable,
-                                    RoundedCornerShape(6.dp)
-                                )
-                                .clickable {
-                                    targetCardId = card.id
-                                    if (!card.accountType.isDeposit) {
-                                        isCcBillPay = true
-                                    }
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = {
+                                targetCardId = card.id
+                                if (!card.accountType.isDeposit) {
+                                    isCcBillPay = true
                                 }
-                                .padding(horizontal = 12.dp, vertical = 7.dp)
-                        ) {
-                            Text(
-                                text = "$prefix${card.name}",
-                                fontSize = 12.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isSelected) Color.White else PrimarySlate
+                            },
+                            label = { Text(card.name, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
+                            leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
                             )
-                        }
+                        )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                Text("Transfer Amount ($)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF64748B))
-                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "TRANSFER AMOUNT ($)",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(6.dp))
                 OutlinedTextField(
                     value = amountText,
                     onValueChange = { amountText = it },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
+                    placeholder = { Text("0.00") },
                     textStyle = androidx.compose.ui.text.TextStyle(
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                         fontFamily = FontFamily.Monospace,
-                        color = PrimarySlate
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -684,7 +686,7 @@ fun LogExpenseModal(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = isCcBillPay, onCheckedChange = { isCcBillPay = it })
-                    Text("Credit Card Bill Payment", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                    Text("Credit Card Bill Payment", style = MaterialTheme.typography.bodyMedium)
                 }
 
                 OutlinedTextField(
@@ -696,7 +698,7 @@ fun LogExpenseModal(
                 )
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Stay on page checkbox (if not editing)
             if (existingExpense == null) {
@@ -705,10 +707,14 @@ fun LogExpenseModal(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Stay on page to log multiple entries", fontSize = 13.sp, color = Color(0xFF64748B))
+                    Text(
+                        text = "Stay on sheet to log multiple entries",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Switch(checked = stayOnPage, onCheckedChange = { stayOnPage = it })
                 }
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
             // Submit Button
@@ -784,20 +790,20 @@ fun LogExpenseModal(
                         }
                     }
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = PrimarySlate),
-                shape = RoundedCornerShape(8.dp),
+                shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp)
+                    .height(50.dp)
             ) {
+                val buttonIcon = if (existingExpense != null) Icons.Default.CheckCircle else if (mode == ModalMode.TRANSACTION) Icons.Default.Add else Icons.Default.SwapHoriz
+                Icon(buttonIcon, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (existingExpense != null) "Update Item" else if (mode == ModalMode.TRANSACTION) "➕ Log Transaction" else "🔄 Execute Transfer",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    text = if (existingExpense != null) "Update Entry" else if (mode == ModalMode.TRANSACTION) "Log Transaction" else "Execute Transfer",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
     }
 }
-

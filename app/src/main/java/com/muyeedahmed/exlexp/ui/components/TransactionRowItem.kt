@@ -11,7 +11,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -66,27 +72,27 @@ fun TransactionRowItem(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color.White)
-            .padding(vertical = 9.dp, horizontal = 12.dp)
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(vertical = 8.dp, horizontal = 14.dp)
     ) {
-        // Line 1: Date (11sp mono 44dp), Description (13sp black), Amount (13sp mono bold), Actions
+        // Line 1: Date, Description, Amount, Actions
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = displayDate,
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 fontFamily = MonoFontFamily,
-                color = NeutralGray,
-                modifier = Modifier.width(44.dp)
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.width(48.dp)
             )
 
             Text(
                 text = descText,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Normal,
-                color = Color.Black,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
@@ -100,7 +106,7 @@ fun TransactionRowItem(
             ) {
                 Text(
                     text = transaction.formattedAmount,
-                    fontSize = 13.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = MonoFontFamily,
                     color = amountColor,
@@ -108,46 +114,51 @@ fun TransactionRowItem(
                 )
 
                 if (onEditClick != null || onDeleteClick != null) {
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
                     if (onEditClick != null) {
-                        Box(
-                            modifier = Modifier
-                                .size(24.dp)
-                                .clickable { onEditClick() },
-                            contentAlignment = Alignment.Center
+                        IconButton(
+                            onClick = onEditClick,
+                            modifier = Modifier.size(28.dp)
                         ) {
-                            Text(text = "✏️", fontSize = 12.sp)
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Edit",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(15.dp)
+                            )
                         }
                     }
                     if (onDeleteClick != null) {
-                        Spacer(modifier = Modifier.width(2.dp))
-                        Box(
-                            modifier = Modifier
-                                .size(24.dp)
-                                .clickable { onDeleteClick() },
-                            contentAlignment = Alignment.Center
+                        IconButton(
+                            onClick = onDeleteClick,
+                            modifier = Modifier.size(28.dp)
                         ) {
-                            Text(text = "🗑️", fontSize = 12.sp)
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete",
+                                tint = NegativeRed.copy(alpha = 0.8f),
+                                modifier = Modifier.size(15.dp)
+                            )
                         }
                     }
                 }
             }
         }
 
-        // Line 2: Empty Spacer (44dp) + Account with Icon (10sp bold #5d5d5d)
+        // Line 2: Empty Spacer (48dp) + Account text
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 2.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Spacer(modifier = Modifier.width(44.dp))
+            Spacer(modifier = Modifier.width(48.dp))
 
             Text(
                 text = displayAccountText,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = SubtitleGray,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier

@@ -17,7 +17,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,24 +38,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.muyeedahmed.exlexp.domain.model.MonthlyCategoryDistribution
-import com.muyeedahmed.exlexp.ui.theme.BorderGray
-import com.muyeedahmed.exlexp.ui.theme.DarkSlate
 import com.muyeedahmed.exlexp.ui.theme.MonoFontFamily
-import com.muyeedahmed.exlexp.ui.theme.NeutralGray
-import com.muyeedahmed.exlexp.ui.theme.PrimarySlate
-import com.muyeedahmed.exlexp.ui.theme.SubHeaderRowBg
 import com.muyeedahmed.exlexp.ui.theme.categoryToColor
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private fun formatMonthLabel(monthStr: String): String {
-    if (monthStr.isBlank()) return ""
+private fun formatMonthLabel(monthKey: String): String {
     return try {
-        val ym = YearMonth.parse(monthStr)
-        ym.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.US))
-    } catch (e: Exception) {
-        monthStr
+        val ym = YearMonth.parse(monthKey)
+        ym.format(DateTimeFormatter.ofPattern("MMM yyyy", Locale.US))
+    } catch (_: Exception) {
+        monthKey
     }
 }
 
@@ -67,27 +69,53 @@ fun CategoryDonutChart(
     onMonthSelected: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.fillMaxWidth().padding(top = 16.dp)) {
-        // Month Selector Row (Tab strip above card)
-        if (availableMonths.isNotEmpty()) {
+    ElevatedCard(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Header
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(38.dp)
-                    .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
-                    .background(SubHeaderRowBg)
-                    .border(1.dp, BorderGray, RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
-                    .padding(horizontal = 12.dp),
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "MONTH:",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = NeutralGray,
-                    modifier = Modifier.padding(end = 8.dp)
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.PieChart,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Spending Distribution",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "Total: ",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = String.format(Locale.US, "$%,.2f", distribution.totalSpending),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = MonoFontFamily,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
 
+            // Month Selector Chips
+            if (availableMonths.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(10.dp))
                 val scrollState = rememberScrollState()
                 Row(
                     modifier = Modifier
@@ -98,221 +126,162 @@ fun CategoryDonutChart(
                 ) {
                     for (month in availableMonths) {
                         val isSelected = month == (if (selectedMonthKey.isNotBlank()) selectedMonthKey else distribution.monthKey)
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                                .background(if (isSelected) Color.White else Color(0xFFE2E8F0))
-                                .border(1.dp, BorderGray, RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                                .clickable { onMonthSelected(month) }
-                                .padding(horizontal = 14.dp, vertical = 6.dp)
-                        ) {
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { onMonthSelected(month) },
+                            label = { Text(formatMonthLabel(month), fontSize = 11.sp) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Spacer(modifier = Modifier.height(10.dp))
+
+            if (distribution.shares.isEmpty() || distribution.totalSpending <= 0.005) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No categorized spending logged for this month.",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                // Donut Wheel (Centered on Mobile)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier.size(160.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Canvas(modifier = Modifier.size(136.dp)) {
+                            var startAngle = -90f
+                            val strokeWidth = 24.dp.toPx()
+
+                            for (share in distribution.shares) {
+                                val sweepAngle = (share.percentage / 100f * 360f).toFloat()
+                                val color = categoryToColor(share.category)
+
+                                drawArc(
+                                    color = color,
+                                    startAngle = startAngle,
+                                    sweepAngle = sweepAngle,
+                                    useCenter = false,
+                                    style = Stroke(width = strokeWidth, cap = StrokeCap.Butt)
+                                )
+                                startAngle += sweepAngle
+                            }
+                        }
+
+                        // Donut Center Text
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                text = formatMonthLabel(month),
-                                fontSize = 12.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
-                                color = if (isSelected) PrimarySlate else NeutralGray
+                                text = "SPENT",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = formatShortK(distribution.totalSpending),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                fontFamily = MonoFontFamily,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
                 }
-            }
-        }
 
-        // Distribution Card
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(
-                    if (availableMonths.isNotEmpty())
-                        RoundedCornerShape(bottomStart = 6.dp, bottomEnd = 6.dp)
-                    else
-                        RoundedCornerShape(6.dp)
-                )
-                .background(Color.White)
-                .border(
-                    1.dp,
-                    BorderGray,
-                    if (availableMonths.isNotEmpty())
-                        RoundedCornerShape(bottomStart = 6.dp, bottomEnd = 6.dp)
-                    else
-                        RoundedCornerShape(6.dp)
-                )
-                .padding(16.dp)
-        ) {
-            Column {
-                // Card Header
-                Row(
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Category Breakdown Legend
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Text(
-                        text = "Spending Distribution - ${formatMonthLabel(distribution.monthKey)}",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PrimarySlate
-                    )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "Total Spent: ",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF475569)
-                        )
-                        Text(
-                            text = String.format(Locale.US, "$%,.2f", distribution.totalSpending),
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = MonoFontFamily,
-                            color = PrimarySlate
-                        )
-                    }
-                }
+                    for (cat in distribution.shares) {
+                        val color = categoryToColor(cat.category)
 
-                Spacer(modifier = Modifier.height(14.dp))
-                HorizontalDivider(color = Color(0xFFF1F5F9))
-                Spacer(modifier = Modifier.height(14.dp))
-
-                if (distribution.shares.isEmpty() || distribution.totalSpending <= 0.005) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "No categorized spending logged for this month.",
-                            fontSize = 13.sp,
-                            color = NeutralGray
-                        )
-                    }
-                } else {
-                    // Donut Wheel (Centered on Mobile)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 12.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Box(
-                            modifier = Modifier.size(160.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Canvas(modifier = Modifier.size(136.dp)) {
-                                var startAngle = -90f
-                                val strokeWidth = 24.dp.toPx()
-
-                                for (share in distribution.shares) {
-                                    val sweepAngle = (share.percentage / 100f * 360f).toFloat()
-                                    val color = categoryToColor(share.category)
-
-                                    drawArc(
-                                        color = color,
-                                        startAngle = startAngle,
-                                        sweepAngle = sweepAngle,
-                                        useCenter = false,
-                                        style = Stroke(width = strokeWidth, cap = StrokeCap.Butt)
-                                    )
-                                    startAngle += sweepAngle
-                                }
-                            }
-
-                            // Donut Center Text
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = "SPENT",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = NeutralGray
-                                )
-                                Text(
-                                    text = formatShortK(distribution.totalSpending),
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontFamily = MonoFontFamily,
-                                    color = PrimarySlate
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Category Breakdown Legend
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        for (cat in distribution.shares) {
-                            val color = categoryToColor(cat.category)
-
-                            Column(modifier = Modifier.fillMaxWidth()) {
-                                // Top Line: Color dot + Name on left, Amount + Percent on right
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            // Top Line: Color dot + Name on left, Amount + Percent on right
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
                                 Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f).padding(end = 8.dp)
                                 ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.weight(1f).padding(end = 8.dp)
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(10.dp)
-                                                .clip(RoundedCornerShape(3.dp))
-                                                .background(color)
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = cat.category,
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = DarkSlate
-                                        )
-                                    }
-
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.End
-                                    ) {
-                                        Text(
-                                            text = String.format(Locale.US, "$%,.2f", cat.amount),
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            fontFamily = MonoFontFamily,
-                                            color = PrimarySlate
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = String.format(Locale.US, "%.1f%%", cat.percentage),
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = NeutralGray,
-                                            modifier = Modifier.width(46.dp)
-                                        )
-                                    }
-                                }
-
-                                Spacer(modifier = Modifier.height(4.dp))
-
-                                // Category Bar Track & Fill
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(5.dp)
-                                        .clip(RoundedCornerShape(3.dp))
-                                        .background(SubHeaderRowBg)
-                                ) {
-                                    val barWidthRatio = (cat.percentage / 100f).toFloat().coerceIn(0.03f, 1f)
                                     Box(
                                         modifier = Modifier
-                                            .fillMaxWidth(barWidthRatio)
-                                            .height(5.dp)
+                                            .size(10.dp)
                                             .clip(RoundedCornerShape(3.dp))
                                             .background(color)
                                     )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = cat.category,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
                                 }
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.End
+                                ) {
+                                    Text(
+                                        text = String.format(Locale.US, "$%,.2f", cat.amount),
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontFamily = MonoFontFamily,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = String.format(Locale.US, "%.1f%%", cat.percentage),
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.width(46.dp)
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            // Category Bar Track & Fill
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(5.dp)
+                                    .clip(RoundedCornerShape(3.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                            ) {
+                                val barWidthRatio = (cat.percentage / 100f).toFloat().coerceIn(0.03f, 1f)
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(barWidthRatio)
+                                        .height(5.dp)
+                                        .clip(RoundedCornerShape(3.dp))
+                                        .background(color)
+                                )
                             }
                         }
                     }
