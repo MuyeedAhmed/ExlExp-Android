@@ -1,26 +1,48 @@
 package com.muyeedahmed.exlexp.ui.screens.alltransactions
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -31,21 +53,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.muyeedahmed.exlexp.domain.model.Expense
 import com.muyeedahmed.exlexp.ui.components.TransactionRowItem
-import com.muyeedahmed.exlexp.ui.theme.BorderTable
-import com.muyeedahmed.exlexp.ui.theme.NegativeRed
-import com.muyeedahmed.exlexp.ui.theme.PrimarySlate
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllTransactionsScreen(
     viewModel: AllTransactionsViewModel,
@@ -64,206 +79,203 @@ fun AllTransactionsScreen(
 
     val displayed = uiState.transactions.take(visibleCount)
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        // 1. Top Header
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .border(width = 1.dp, color = Color(0xFFF1F5F9))
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-        ) {
-            // Back button
-            Row(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFFF1F5F9))
-                    .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(8.dp))
-                    .clickable { onNavigateBack() }
-                    .padding(horizontal = 14.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "‹",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = PrimarySlate
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Column {
+                        Text(
+                            text = "All Transactions",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Showing ${displayed.size} of ${uiState.transactions.size} (${uiState.totalCount} total)",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "Analytics",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimarySlate
-                )
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Text(
-                text = "All Transactions",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = PrimarySlate
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = "Showing ${displayed.size} of ${uiState.transactions.size} entries (${uiState.totalCount} total)",
-                fontSize = 12.sp,
-                color = Color(0xFF64748B)
             )
         }
-
-        // 2. Search & Filter Controls
+    ) { innerPadding ->
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .border(width = 1.dp, color = Color(0xFFE2E8F0))
-                .padding(horizontal = 16.dp, vertical = 10.dp)
+                .fillMaxSize()
+                .padding(innerPadding)
         ) {
-            // Search Bar
-            Box(
+            // Search and Filter Bar
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFF8FAFC), RoundedCornerShape(6.dp))
-                    .border(1.dp, Color(0xFFCBD5E1), RoundedCornerShape(6.dp))
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(horizontal = 16.dp, vertical = 10.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    BasicTextField(
-                        value = uiState.searchQuery,
-                        onValueChange = { viewModel.onSearchQueryChange(it) },
-                        singleLine = true,
-                        textStyle = TextStyle(
-                            fontSize = 13.sp,
-                            color = PrimarySlate
-                        ),
-                        cursorBrush = SolidColor(PrimarySlate),
-                        decorationBox = { innerTextField ->
-                            if (uiState.searchQuery.isEmpty()) {
-                                Text(
-                                    text = "Search transactions (description, account, amount, date)...",
-                                    fontSize = 13.sp,
-                                    color = Color(0xFF94A3B8)
+                // Outlined Search Field
+                OutlinedTextField(
+                    value = uiState.searchQuery,
+                    onValueChange = { viewModel.onSearchQueryChange(it) },
+                    placeholder = {
+                        Text(
+                            text = "Search description, account, amount, date...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    trailingIcon = {
+                        if (uiState.searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { viewModel.onSearchQueryChange("") }) {
+                                Icon(
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = "Clear search",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                            innerTextField()
-                        },
-                        modifier = Modifier.weight(1f)
+                        }
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.3f),
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Material 3 Filter Chips Row
+                val filterScroll = rememberScrollState()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(filterScroll),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    M3FilterChip(
+                        label = "All (${uiState.totalCount})",
+                        selected = uiState.activeFilter == TransactionFilter.ALL,
+                        onClick = { viewModel.onFilterChange(TransactionFilter.ALL) }
                     )
-                    if (uiState.searchQuery.isNotEmpty()) {
+                    M3FilterChip(
+                        label = "Bank & Invest",
+                        icon = Icons.Default.AccountBalance,
+                        selected = uiState.activeFilter == TransactionFilter.BANK_AND_INVEST,
+                        onClick = { viewModel.onFilterChange(TransactionFilter.BANK_AND_INVEST) }
+                    )
+                    M3FilterChip(
+                        label = "Credit Cards",
+                        icon = Icons.Default.CreditCard,
+                        selected = uiState.activeFilter == TransactionFilter.CREDIT_CARDS,
+                        onClick = { viewModel.onFilterChange(TransactionFilter.CREDIT_CARDS) }
+                    )
+                    M3FilterChip(
+                        label = "Transfers",
+                        icon = Icons.Default.SwapHoriz,
+                        selected = uiState.activeFilter == TransactionFilter.TRANSFERS,
+                        onClick = { viewModel.onFilterChange(TransactionFilter.TRANSFERS) }
+                    )
+                }
+            }
+
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+            // Transactions List
+            if (uiState.transactions.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(48.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.ReceiptLong,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                            modifier = Modifier.size(56.dp)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "✕",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF64748B),
-                            modifier = Modifier
-                                .clickable { viewModel.onSearchQueryChange("") }
-                                .padding(horizontal = 4.dp)
+                            text = "No matching transactions found.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
-            }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 70.dp)
+                ) {
+                    items(
+                        items = displayed,
+                        key = { it.expense.id }
+                    ) { tx ->
+                        TransactionRowItem(
+                            transaction = tx,
+                            onEditClick = { onEditExpense(tx.expense) },
+                            onDeleteClick = { expenseToDelete = tx.expense }
+                        )
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                            thickness = 0.5.dp
+                        )
+                    }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Filter Pills
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                FilterPill(
-                    text = "All (${uiState.totalCount})",
-                    isSelected = uiState.activeFilter == TransactionFilter.ALL,
-                    onClick = { viewModel.onFilterChange(TransactionFilter.ALL) }
-                )
-                FilterPill(
-                    text = "🏛️ Bank & Invest",
-                    isSelected = uiState.activeFilter == TransactionFilter.BANK_AND_INVEST,
-                    onClick = { viewModel.onFilterChange(TransactionFilter.BANK_AND_INVEST) }
-                )
-                FilterPill(
-                    text = "💳 Credit Cards",
-                    isSelected = uiState.activeFilter == TransactionFilter.CREDIT_CARDS,
-                    onClick = { viewModel.onFilterChange(TransactionFilter.CREDIT_CARDS) }
-                )
-                FilterPill(
-                    text = "🔄 Transfers",
-                    isSelected = uiState.activeFilter == TransactionFilter.TRANSFERS,
-                    onClick = { viewModel.onFilterChange(TransactionFilter.TRANSFERS) }
-                )
-            }
-        }
-
-        // 3. Transactions List
-        if (uiState.transactions.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 48.dp),
-                contentAlignment = Alignment.TopCenter
-            ) {
-                Text(
-                    text = "No matching transactions found.",
-                    fontSize = 14.sp,
-                    color = Color(0xFF64748B)
-                )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(
-                    items = displayed,
-                    key = { it.expense.id }
-                ) { tx ->
-                    TransactionRowItem(
-                        transaction = tx,
-                        onEditClick = { onEditExpense(tx.expense) },
-                        onDeleteClick = { expenseToDelete = tx.expense }
-                    )
-                    HorizontalDivider(thickness = 0.5.dp, color = BorderTable)
-                }
-
-                // Load More Button or All Loaded Indicator
-                item {
-                    if (uiState.transactions.size > visibleCount) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color(0xFFF8FAFC))
-                                .clickable { visibleCount += 50 }
-                                .padding(vertical = 14.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "Load 50 More (Showing ${displayed.size} of ${uiState.transactions.size})",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = FontFamily.Monospace,
-                                color = Color(0xFF3B82F6)
-                            )
-                        }
-                    } else if (uiState.transactions.isNotEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "All ${uiState.transactions.size} transactions loaded",
-                                fontSize = 12.sp,
-                                color = Color(0xFF94A3B8)
-                            )
+                    // Load More Button or Completion Banner
+                    item {
+                        if (uiState.transactions.size > visibleCount) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                OutlinedButton(
+                                    onClick = { visibleCount += 50 },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("Load 50 More (Showing ${displayed.size} of ${uiState.transactions.size})")
+                                }
+                            }
+                        } else if (uiState.transactions.isNotEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(20.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "All ${uiState.transactions.size} transactions loaded",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
@@ -277,15 +289,15 @@ fun AllTransactionsScreen(
         AlertDialog(
             onDismissRequest = { expenseToDelete = null },
             title = { Text("Delete Transaction") },
-            text = { Text("Are you sure you want to delete this transaction?") },
+            text = { Text("Are you sure you want to delete \"${exp.description}\"?") },
             confirmButton = {
-                TextButton(
+                Button(
                     onClick = {
                         viewModel.deleteExpense(exp.id)
                         expenseToDelete = null
                     }
                 ) {
-                    Text("Delete", color = NegativeRed, fontWeight = FontWeight.Bold)
+                    Text("Delete")
                 }
             },
             dismissButton = {
@@ -298,29 +310,36 @@ fun AllTransactionsScreen(
 }
 
 @Composable
-private fun FilterPill(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
+private fun M3FilterChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    icon: ImageVector? = null
 ) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(if (isSelected) PrimarySlate else Color(0xFFF1F5F9))
-            .border(
-                width = 1.dp,
-                color = if (isSelected) PrimarySlate else Color(0xFFE2E8F0),
-                shape = RoundedCornerShape(6.dp)
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
             )
-            .clickable { onClick() }
-            .padding(horizontal = 10.dp, vertical = 5.dp)
-    ) {
-        Text(
-            text = text,
-            fontSize = 11.sp,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
-            color = if (isSelected) Color.White else Color(0xFF475569)
+        },
+        leadingIcon = if (icon != null) {
+            {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        } else null,
+        shape = RoundedCornerShape(8.dp),
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
         )
-    }
+    )
 }
-

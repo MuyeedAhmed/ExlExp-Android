@@ -31,6 +31,19 @@ class SettingsViewModel @Inject constructor(
     private val syncRepository: SyncRepository
 ) : ViewModel() {
 
+    data class ImportDialogState(
+        val isSuccess: Boolean,
+        val title: String,
+        val message: String
+    )
+
+    private val _importDialogState = MutableStateFlow<ImportDialogState?>(null)
+    val importDialogState: StateFlow<ImportDialogState?> = _importDialogState.asStateFlow()
+
+    fun dismissImportDialog() {
+        _importDialogState.value = null
+    }
+
     private val _statusMessage = MutableStateFlow<String?>(null)
     val statusMessage: StateFlow<String?> = _statusMessage.asStateFlow()
 
@@ -156,6 +169,30 @@ class SettingsViewModel @Inject constructor(
 
     suspend fun exportJson(): String {
         return syncRepository.exportDataAsJson(syncRepository.getCurrentUsername())
+    }
+
+    fun importData(jsonContent: String) {
+        viewModelScope.launch {
+            _isSyncing.value = true
+            val result = syncRepository.importDataFromJson(jsonContent)
+            _isSyncing.value = false
+            result.fold(
+                onSuccess = { res ->
+                    _importDialogState.value = ImportDialogState(
+                        isSuccess = true,
+                        title = "Import Successful",
+                        message = "Successfully imported:\n\n• ${res.cardsCount} accounts\n• ${res.expensesCount} transactions\n• ${res.futureExpensesCount} bills"
+                    )
+                },
+                onFailure = { err ->
+                    _importDialogState.value = ImportDialogState(
+                        isSuccess = false,
+                        title = "Import Failed",
+                        message = "Import failed with error:\n\n${err.message ?: err.toString()}"
+                    )
+                }
+            )
+        }
     }
 
     fun clearStatusMessage() {

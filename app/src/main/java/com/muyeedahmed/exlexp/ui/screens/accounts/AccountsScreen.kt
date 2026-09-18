@@ -1,9 +1,6 @@
 package com.muyeedahmed.exlexp.ui.screens.accounts
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,13 +12,30 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Savings
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -36,22 +50,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.muyeedahmed.exlexp.domain.model.Expense
-import com.muyeedahmed.exlexp.ui.theme.BorderTable
-import com.muyeedahmed.exlexp.ui.theme.HeaderRowBg
+import com.muyeedahmed.exlexp.ui.components.AccountBadge
+import com.muyeedahmed.exlexp.ui.theme.MonoFontFamily
 import com.muyeedahmed.exlexp.ui.theme.NegativeRed
 import com.muyeedahmed.exlexp.ui.theme.PositiveGreen
-import com.muyeedahmed.exlexp.ui.theme.PrimarySlate
 import java.util.Locale
 import kotlin.math.abs
 
@@ -73,10 +83,10 @@ fun AccountsScreen(
     val selectedAccountId = uiState.selectedTabId
 
     // Pagination for transactions
-    var visibleCount by remember { mutableIntStateOf(25) }
+    var visibleCount by remember { mutableIntStateOf(30) }
 
     LaunchedEffect(selectedAccountId) {
-        visibleCount = 25
+        visibleCount = 30
     }
 
     val isBrokerage = selectedAccountId == "brokerage_portfolio"
@@ -84,52 +94,67 @@ fun AccountsScreen(
     val isSaving = activeAccount?.isSaving == true
 
     // Brokerage inline editing state
-    var editingBrokerageId by remember { mutableStateOf<String?>(null) }
+    var editingBrokerageAccount by remember { mutableStateOf<com.muyeedahmed.exlexp.domain.model.CreditCard?>(null) }
     var editingBrokerageValue by remember { mutableStateOf("") }
 
     // Delete confirmation state
     var expenseToDelete by remember { mutableStateOf<Expense?>(null) }
 
-    val tableHorizontalScrollState = rememberScrollState()
-    val tableVerticalScrollState = rememberScrollState()
+    // Build the list of all tabs
+    data class AccountTabItem(val id: String, val name: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
+    val allTabs = mutableListOf<AccountTabItem>()
+    checkingOnly.forEach { allTabs.add(AccountTabItem(it.id, it.name, Icons.Default.AccountBalance)) }
+    savingsOnly.forEach { allTabs.add(AccountTabItem(it.id, it.name, Icons.Default.Savings)) }
+    if (hasBrokerage) {
+        allTabs.add(AccountTabItem("brokerage_portfolio", "Brokerage", Icons.Default.TrendingUp))
+    }
+
+    val selectedTabIndex = allTabs.indexOfFirst { it.id == selectedAccountId }.coerceAtLeast(0)
 
     if (checkingOnly.isEmpty() && savingsOnly.isEmpty() && !hasBrokerage) {
         Box(
             modifier = modifier
                 .fillMaxSize()
-                .background(Color.White)
-                .padding(20.dp),
+                .background(MaterialTheme.colorScheme.background)
+                .padding(24.dp),
             contentAlignment = Alignment.Center
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "🏦 No Bank Accounts Configured",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimarySlate,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Add your Checking, Savings, or Brokerage accounts in Settings to track balances and transactions.",
-                    fontSize = 13.sp,
-                    color = Color(0xFF94A3B8),
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(PrimarySlate)
-                        .clickable { onNavigateToSettings() }
-                        .padding(horizontal = 16.dp, vertical = 10.dp)
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        text = "➕ Add Bank Account",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
+                    Icon(
+                        imageVector = Icons.Default.AccountBalance,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(48.dp)
                     )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "No Bank Accounts Configured",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "Add Checking, Savings, or Brokerage accounts in Settings to track transactions and balances.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = onNavigateToSettings) {
+                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Add Bank Account")
+                    }
                 }
             }
         }
@@ -139,370 +164,236 @@ fun AccountsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        // 1. Excel Sheet Style Tabs Bar
-        val sheetTabsScroll = rememberScrollState()
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(38.dp)
-                .background(Color(0xFFF1F5F9))
-                .border(width = 1.dp, color = BorderTable)
-                .horizontalScroll(sheetTabsScroll)
-                .padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.Bottom
+        // 1. Material 3 ScrollableTabRow for Accounts
+        ScrollableTabRow(
+            selectedTabIndex = selectedTabIndex,
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.primary,
+            edgePadding = 12.dp
         ) {
-            // Checking group
-            if (checkingOnly.isNotEmpty()) {
-                Text(
-                    text = "CHECKING",
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF64748B),
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .padding(end = 8.dp)
-                )
-                checkingOnly.forEach { account ->
-                    val isSelected = selectedAccountId == account.id
-                    SheetTabButton(
-                        text = account.name,
-                        isSelected = isSelected,
-                        onClick = { viewModel.selectTab(account.id) }
-                    )
-                }
-            }
-
-            // Savings group
-            if (savingsOnly.isNotEmpty()) {
-                if (checkingOnly.isNotEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.CenterVertically)
-                            .padding(horizontal = 8.dp)
-                            .width(1.dp)
-                            .height(18.dp)
-                            .background(BorderTable)
-                    )
-                }
-                Text(
-                    text = "SAVINGS",
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF64748B),
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .padding(end = 8.dp)
-                )
-                savingsOnly.forEach { account ->
-                    val isSelected = selectedAccountId == account.id
-                    SheetTabButton(
-                        text = account.name,
-                        isSelected = isSelected,
-                        onClick = { viewModel.selectTab(account.id) }
-                    )
-                }
-            }
-
-            // Brokerage group
-            if (hasBrokerage) {
-                if (checkingOnly.isNotEmpty() || savingsOnly.isNotEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.CenterVertically)
-                            .padding(horizontal = 8.dp)
-                            .width(1.dp)
-                            .height(18.dp)
-                            .background(BorderTable)
-                    )
-                }
-                Text(
-                    text = "BROKERAGE",
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF64748B),
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .padding(end = 8.dp)
-                )
-                val isSelected = selectedAccountId == "brokerage_portfolio"
-                SheetTabButton(
-                    text = "Portfolio List",
-                    isSelected = isSelected,
-                    onClick = { viewModel.selectTab("brokerage_portfolio") }
-                )
-            }
-
-            // Add Account Button
-            Spacer(modifier = Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterVertically)
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(PrimarySlate)
-                    .clickable { onNavigateToSettings() }
-                    .padding(horizontal = 12.dp, vertical = 5.dp)
-            ) {
-                Text(
-                    text = "➕ Add Account",
-                    color = Color.White,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold
+            allTabs.forEachIndexed { index, tab ->
+                val isSelected = selectedTabIndex == index
+                Tab(
+                    selected = isSelected,
+                    onClick = { viewModel.selectTab(tab.id) },
+                    text = {
+                        Text(
+                            text = tab.name,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = tab.icon,
+                            contentDescription = tab.name,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                 )
             }
         }
 
-        // 2. Account Balance Banner
+        // 2. Account Balance Banner Card
         if (activeAccount != null) {
-            Row(
+            ElevatedCard(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFF8FAFC))
-                    .border(width = 1.dp, color = BorderTable)
-                    .padding(12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
             ) {
-                Text(
-                    text = "Account: ${activeAccount.name}",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimarySlate
-                )
-                val bal = uiState.accountBalance
-                val formattedBalance = if (bal >= 0) {
-                    String.format(Locale.US, "$%,.2f", bal)
-                } else {
-                    String.format(Locale.US, "-$%,.2f", abs(bal))
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Current Balance: ",
-                        fontSize = 14.sp,
-                        color = Color(0xFF475569)
-                    )
-                    Text(
-                        text = formattedBalance,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace,
-                        color = if (bal >= 0) PositiveGreen else NegativeRed
-                    )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = activeAccount.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            AccountBadge(accountType = activeAccount.accountType)
+                        }
+                        Text(
+                            text = "Opened: ${activeAccount.openDate}",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    val bal = uiState.accountBalance
+                    val formattedBalance = if (bal >= 0) {
+                        String.format(Locale.US, "$%,.2f", bal)
+                    } else {
+                        String.format(Locale.US, "-$%,.2f", abs(bal))
+                    }
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = "Current Balance",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = formattedBalance,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontFamily = MonoFontFamily,
+                            color = if (bal >= 0) PositiveGreen else NegativeRed
+                        )
+                    }
                 }
             }
         } else if (isBrokerage) {
             val totalBrokerage = uiState.brokerageBalances.values.sum()
-            Row(
+            ElevatedCard(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFF8FAFC))
-                    .border(width = 1.dp, color = BorderTable)
-                    .padding(12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
             ) {
-                Text(
-                    text = "Account: Brokerage Portfolio",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimarySlate
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Current Balance: ",
-                        fontSize = 14.sp,
-                        color = Color(0xFF475569)
-                    )
-                    Text(
-                        text = String.format(Locale.US, "$%,.2f", totalBrokerage),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace,
-                        color = PrimarySlate
-                    )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "Brokerage Portfolio",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "${brokerageAccounts.size} investment accounts",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = "Portfolio Total",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = String.format(Locale.US, "$%,.2f", totalBrokerage),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontFamily = MonoFontFamily,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
         }
 
-        // 3. Spreadsheet Table Grid
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .horizontalScroll(tableHorizontalScrollState)
-        ) {
-            if (isBrokerage) {
-                // ==================== BROKERAGE TABLE (550dp) ====================
-                Column(
-                    modifier = Modifier
-                        .width(550.dp)
-                        .verticalScroll(tableVerticalScrollState)
-                ) {
-                    // Header Row
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(36.dp)
-                            .background(Color(0xFFF1F5F9))
-                            .border(width = 1.dp, color = BorderTable),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Account Name",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF475569),
-                            modifier = Modifier
-                                .width(250.dp)
-                                .padding(horizontal = 8.dp)
-                        )
-                        Text(
-                            text = "Current Balance",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF475569),
-                            textAlign = TextAlign.End,
-                            modifier = Modifier
-                                .width(150.dp)
-                                .padding(horizontal = 8.dp)
-                        )
-                        Text(
-                            text = "Actions",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF475569),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .width(150.dp)
-                                .padding(horizontal = 8.dp)
-                        )
-                    }
-
-                    // Data Rows
-                    if (brokerageAccounts.isEmpty()) {
-                        Text(
-                            text = "No brokerage accounts configured.",
-                            fontSize = 13.sp,
-                            color = Color(0xFF64748B),
-                            textAlign = TextAlign.Center,
+        // 3. Main Content: Brokerage List or Account Transactions
+        if (isBrokerage) {
+            // ==================== BROKERAGE PORTFOLIO LIST ====================
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 70.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (brokerageAccounts.isEmpty()) {
+                    item {
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(24.dp)
-                        )
-                    } else {
-                        brokerageAccounts.forEach { item ->
-                            val currentVal = uiState.brokerageBalances[item.id] ?: 0.0
-                            val isEditing = editingBrokerageId == item.id
+                                .padding(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No brokerage accounts configured.",
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                } else {
+                    items(brokerageAccounts, key = { it.id }) { item ->
+                        val currentVal = uiState.brokerageBalances[item.id] ?: 0.0
 
+                        ElevatedCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
+                        ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(38.dp)
-                                    .background(Color.White)
-                                    .border(width = 0.5.dp, color = Color(0xFFE2E8F0)),
+                                    .padding(14.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // Account Name
-                                Text(
-                                    text = item.name,
-                                    fontSize = 13.sp,
-                                    color = Color(0xFF334155),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier
-                                        .width(250.dp)
-                                        .padding(horizontal = 8.dp)
-                                )
-
-                                // Current Balance
-                                Box(
-                                    modifier = Modifier
-                                        .width(150.dp)
-                                        .padding(horizontal = 8.dp),
-                                    contentAlignment = Alignment.CenterEnd
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f).padding(end = 8.dp)
                                 ) {
-                                    if (isEditing) {
-                                        BasicTextField(
-                                            value = editingBrokerageValue,
-                                            onValueChange = { editingBrokerageValue = it },
-                                            singleLine = true,
-                                            textStyle = TextStyle(
-                                                fontSize = 13.sp,
-                                                fontFamily = FontFamily.Monospace,
-                                                color = PrimarySlate,
-                                                textAlign = TextAlign.End
-                                            ),
-                                            cursorBrush = SolidColor(PrimarySlate),
-                                            keyboardOptions = KeyboardOptions(
-                                                keyboardType = KeyboardType.Decimal,
-                                                imeAction = ImeAction.Done
-                                            ),
-                                            keyboardActions = KeyboardActions(
-                                                onDone = {
-                                                    val parsed = editingBrokerageValue.toDoubleOrNull()
-                                                    if (parsed != null) {
-                                                        viewModel.updateBrokerageBalance(item.id, parsed)
-                                                    }
-                                                    editingBrokerageId = null
-                                                }
-                                            ),
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .background(Color(0xFFEFF6FF), RoundedCornerShape(4.dp))
-                                                .border(1.dp, Color(0xFF3B82F6), RoundedCornerShape(4.dp))
-                                                .padding(horizontal = 6.dp, vertical = 4.dp)
-                                        )
-                                    } else {
+                                    Icon(
+                                        imageVector = Icons.Default.TrendingUp,
+                                        contentDescription = null,
+                                        tint = Color(0xFF7E22CE),
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Column {
                                         Text(
-                                            text = String.format(Locale.US, "$%,.2f", currentVal),
-                                            fontSize = 13.sp,
-                                            fontFamily = FontFamily.Monospace,
-                                            color = Color(0xFF334155),
-                                            textAlign = TextAlign.End
+                                            text = item.name,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        Text(
+                                            text = "Opened: ${item.openDate}",
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                 }
 
-                                // Actions
-                                Row(
-                                    modifier = Modifier
-                                        .width(150.dp)
-                                        .padding(horizontal = 8.dp),
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    if (isEditing) {
-                                        Text(
-                                            text = "💾",
-                                            fontSize = 14.sp,
-                                            modifier = Modifier
-                                                .clickable {
-                                                    val parsed = editingBrokerageValue.toDoubleOrNull()
-                                                    if (parsed != null) {
-                                                        viewModel.updateBrokerageBalance(item.id, parsed)
-                                                    }
-                                                    editingBrokerageId = null
-                                                }
-                                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                        )
-                                        Text(
-                                            text = "❌",
-                                            fontSize = 14.sp,
-                                            modifier = Modifier
-                                                .clickable { editingBrokerageId = null }
-                                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                        )
-                                    } else {
-                                        Text(
-                                            text = "✏️",
-                                            fontSize = 14.sp,
-                                            modifier = Modifier
-                                                .clickable {
-                                                    editingBrokerageId = item.id
-                                                    editingBrokerageValue = String.format(Locale.US, "%.2f", currentVal)
-                                                }
-                                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = String.format(Locale.US, "$%,.2f", currentVal),
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = MonoFontFamily,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    IconButton(
+                                        onClick = {
+                                            editingBrokerageAccount = item
+                                            editingBrokerageValue = String.format(Locale.US, "%.2f", currentVal)
+                                        },
+                                        modifier = Modifier.size(32.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Edit,
+                                            contentDescription = "Edit Balance",
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(16.dp)
                                         )
                                     }
                                 }
@@ -510,264 +401,213 @@ fun AccountsScreen(
                         }
                     }
                 }
-            } else {
-                // ==================== CHECKING (790dp) or SAVINGS (820dp) ====================
-                val tableWidth = if (isSaving) 820.dp else 790.dp
-                Column(
-                    modifier = Modifier
-                        .width(tableWidth)
-                        .verticalScroll(tableVerticalScrollState)
-                ) {
-                    // Header Row
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(36.dp)
-                            .background(Color(0xFFF1F5F9))
-                            .border(width = 1.dp, color = BorderTable),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Date",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF475569),
-                            modifier = Modifier
-                                .width(90.dp)
-                                .padding(horizontal = 8.dp)
-                        )
-                        Text(
-                            text = "From/To",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF475569),
-                            modifier = Modifier
-                                .width(180.dp)
-                                .padding(horizontal = 8.dp)
-                        )
-                        Text(
-                            text = "Amount",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF475569),
-                            textAlign = TextAlign.End,
-                            modifier = Modifier
-                                .width(110.dp)
-                                .padding(horizontal = 8.dp)
-                        )
-                        if (isSaving) {
-                            Text(
-                                text = "Interest",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF475569),
-                                textAlign = TextAlign.End,
-                                modifier = Modifier
-                                    .width(110.dp)
-                                    .padding(horizontal = 8.dp)
-                            )
-                        }
-                        Text(
-                            text = "Details",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF475569),
-                            modifier = Modifier
-                                .width(if (isSaving) 120.dp else 200.dp)
-                                .padding(horizontal = 8.dp)
-                        )
-                        Text(
-                            text = "Category",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF475569),
-                            modifier = Modifier
-                                .width(110.dp)
-                                .padding(horizontal = 8.dp)
-                        )
-                        Text(
-                            text = "Actions",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF475569),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .width(100.dp)
-                                .padding(horizontal = 8.dp)
-                        )
-                    }
+            }
+        } else {
+            // ==================== CHECKING / SAVINGS TRANSACTION REGISTRY ====================
+            val displayedExpenses = uiState.accountExpenses.take(visibleCount)
 
-                    // Data Rows
-                    if (uiState.accountExpenses.isEmpty()) {
-                        Text(
-                            text = "No transactions recorded.",
-                            fontSize = 13.sp,
-                            color = Color(0xFF64748B),
-                            textAlign = TextAlign.Center,
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 70.dp)
+            ) {
+                if (uiState.accountExpenses.isEmpty()) {
+                    item {
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(24.dp)
-                        )
-                    } else {
-                        val displayedExpenses = uiState.accountExpenses.take(visibleCount)
-                        displayedExpenses.forEach { item ->
-                            val isDeposit = item.amount >= 0
-                            val formattedAmount = if (isDeposit) {
-                                String.format(Locale.US, "+$%,.2f", item.amount)
-                            } else {
-                                String.format(Locale.US, "-$%,.2f", abs(item.amount))
-                            }
-                            val dateShort = if (item.date.length >= 10) item.date.substring(5) else item.date
-                            val fromToDisplay = item.fromTo?.ifEmpty { null }
-                                ?: if (item.details?.startsWith("Zelle ") == true || item.description.startsWith("Zelle ")) "Zelle"
-                                else item.description
+                                .padding(40.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No transactions recorded for this account.",
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                } else {
+                    items(displayedExpenses, key = { it.id }) { item ->
+                        val isDeposit = item.amount >= 0
+                        val formattedAmount = if (isDeposit) {
+                            String.format(Locale.US, "+$%,.2f", item.amount)
+                        } else {
+                            String.format(Locale.US, "-$%,.2f", abs(item.amount))
+                        }
+                        val fromToDisplay = item.fromTo?.ifEmpty { null }
+                            ?: if (item.details?.startsWith("Zelle ") == true || item.description.startsWith("Zelle ")) "Zelle"
+                            else item.description
 
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(38.dp)
-                                    .background(Color.White)
-                                    .border(width = 0.5.dp, color = Color(0xFFE2E8F0)),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                // Date (MM-DD)
-                                Text(
-                                    text = dateShort,
-                                    fontSize = 13.sp,
-                                    fontFamily = FontFamily.Monospace,
-                                    color = Color(0xFF334155),
-                                    modifier = Modifier
-                                        .width(90.dp)
-                                        .padding(horizontal = 8.dp)
-                                )
+                        ElevatedCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                // Line 1: Date, Category, Amount
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = item.date,
+                                            fontSize = 11.sp,
+                                            fontFamily = MonoFontFamily,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        SuggestionChip(
+                                            onClick = {},
+                                            label = { Text(item.category.ifEmpty { "Others" }, fontSize = 10.sp) },
+                                            colors = SuggestionChipDefaults.suggestionChipColors(
+                                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                            ),
+                                            border = null,
+                                            modifier = Modifier.height(24.dp)
+                                        )
+                                        if (isSaving && item.isInterest) {
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Box(
+                                                modifier = Modifier
+                                                    .clip(RoundedCornerShape(3.dp))
+                                                    .background(PositiveGreen.copy(alpha = 0.15f))
+                                                    .padding(horizontal = 4.dp, vertical = 2.dp)
+                                            ) {
+                                                Text("INTEREST", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = PositiveGreen)
+                                            }
+                                        }
+                                    }
 
-                                // From/To
-                                Text(
-                                    text = fromToDisplay,
-                                    fontSize = 13.sp,
-                                    color = Color(0xFF334155),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier
-                                        .width(180.dp)
-                                        .padding(horizontal = 8.dp)
-                                )
-
-                                if (isSaving) {
-                                    // Savings Amount Column
-                                    Text(
-                                        text = if (item.isInterest) "-" else formattedAmount,
-                                        fontSize = 13.sp,
-                                        fontFamily = FontFamily.Monospace,
-                                        fontWeight = FontWeight.Medium,
-                                        color = if (item.isInterest) Color(0xFF94A3B8) else if (isDeposit) PositiveGreen else PrimarySlate,
-                                        textAlign = TextAlign.End,
-                                        modifier = Modifier
-                                            .width(110.dp)
-                                            .padding(horizontal = 8.dp)
-                                    )
-
-                                    // Savings Interest Column
-                                    Text(
-                                        text = if (item.isInterest) formattedAmount else "-",
-                                        fontSize = 13.sp,
-                                        fontFamily = FontFamily.Monospace,
-                                        fontWeight = FontWeight.Medium,
-                                        color = if (item.isInterest) PositiveGreen else Color(0xFF94A3B8),
-                                        textAlign = TextAlign.End,
-                                        modifier = Modifier
-                                            .width(110.dp)
-                                            .padding(horizontal = 8.dp)
-                                    )
-                                } else {
-                                    // Checking Amount Column
                                     Text(
                                         text = formattedAmount,
-                                        fontSize = 13.sp,
-                                        fontFamily = FontFamily.Monospace,
-                                        fontWeight = FontWeight.Medium,
-                                        color = if (isDeposit) PositiveGreen else PrimarySlate,
-                                        textAlign = TextAlign.End,
-                                        modifier = Modifier
-                                            .width(110.dp)
-                                            .padding(horizontal = 8.dp)
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = MonoFontFamily,
+                                        color = if (isDeposit) PositiveGreen else MaterialTheme.colorScheme.onSurface
                                     )
                                 }
 
-                                // Details
-                                Text(
-                                    text = item.details ?: "",
-                                    fontSize = 13.sp,
-                                    color = Color(0xFF334155),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier
-                                        .width(if (isSaving) 120.dp else 200.dp)
-                                        .padding(horizontal = 8.dp)
-                                )
+                                Spacer(modifier = Modifier.height(6.dp))
 
-                                // Category
-                                Text(
-                                    text = item.category.ifEmpty { "Others" },
-                                    fontSize = 13.sp,
-                                    color = Color(0xFF334155),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier
-                                        .width(110.dp)
-                                        .padding(horizontal = 8.dp)
-                                )
-
-                                // Actions (✏️ 🗑️)
+                                // Line 2: Payee / Description and Actions
                                 Row(
-                                    modifier = Modifier
-                                        .width(100.dp)
-                                        .padding(horizontal = 8.dp),
-                                    horizontalArrangement = Arrangement.Center,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = "✏️",
-                                        fontSize = 13.sp,
-                                        modifier = Modifier
-                                            .clickable { onEditExpense(item) }
-                                            .padding(horizontal = 6.dp, vertical = 4.dp)
-                                    )
-                                    Text(
-                                        text = "🗑️",
-                                        fontSize = 13.sp,
-                                        modifier = Modifier
-                                            .clickable { expenseToDelete = item }
-                                            .padding(horizontal = 6.dp, vertical = 4.dp)
-                                    )
+                                    Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                                        Text(
+                                            text = fromToDisplay,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        if (!item.details.isNullOrBlank()) {
+                                            Text(
+                                                text = item.details,
+                                                fontSize = 11.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+                                    }
+
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        IconButton(
+                                            onClick = { onEditExpense(item) },
+                                            modifier = Modifier.size(30.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Edit,
+                                                contentDescription = "Edit",
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.size(15.dp)
+                                            )
+                                        }
+                                        IconButton(
+                                            onClick = { expenseToDelete = item },
+                                            modifier = Modifier.size(30.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Delete,
+                                                contentDescription = "Delete",
+                                                tint = NegativeRed.copy(alpha = 0.8f),
+                                                modifier = Modifier.size(15.dp)
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
+                    }
 
-                        // Load More row
-                        if (uiState.accountExpenses.size > visibleCount) {
+                    // Show More item
+                    if (uiState.accountExpenses.size > visibleCount) {
+                        item {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(Color(0xFFF8FAFC))
-                                    .border(width = 0.5.dp, color = BorderTable)
-                                    .clickable { visibleCount += 25 }
                                     .padding(vertical = 12.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    text = "Show More (showing $visibleCount of ${uiState.accountExpenses.size})",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    fontFamily = FontFamily.Monospace,
-                                    color = Color(0xFF3B82F6)
-                                )
+                                TextButton(onClick = { visibleCount += 30 }) {
+                                    Text(
+                                        text = "Load More (${displayedExpenses.size} of ${uiState.accountExpenses.size})",
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
         }
+    }
+
+    // Brokerage Edit Balance Dialog
+    if (editingBrokerageAccount != null) {
+        val account = editingBrokerageAccount!!
+        AlertDialog(
+            onDismissRequest = { editingBrokerageAccount = null },
+            title = { Text("Update ${account.name} Balance") },
+            text = {
+                OutlinedTextField(
+                    value = editingBrokerageValue,
+                    onValueChange = { editingBrokerageValue = it },
+                    label = { Text("Current Balance ($)") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val parsed = editingBrokerageValue.toDoubleOrNull()
+                        if (parsed != null) {
+                            viewModel.updateBrokerageBalance(account.id, parsed)
+                        }
+                        editingBrokerageAccount = null
+                    }
+                ) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { editingBrokerageAccount = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     // Delete Confirmation Dialog
@@ -794,33 +634,5 @@ fun AccountsScreen(
             }
         )
     }
-}
-
-@Composable
-private fun SheetTabButton(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-            .background(if (isSelected) Color.White else Color(0xFFE2E8F0))
-            .border(
-                width = 1.dp,
-                color = BorderTable,
-                shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
-            )
-            .clickable { onClick() }
-            .padding(horizontal = 14.dp, vertical = 6.dp)
-    ) {
-        Text(
-            text = text,
-            fontSize = 12.sp,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-            color = if (isSelected) PrimarySlate else Color(0xFF475569)
-        )
-    }
-    Spacer(modifier = Modifier.width(4.dp))
 }
 
