@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace = "com.muyeedahmed.exlexp"
+    namespace = "com.muyeedahmed.exldroid"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.muyeedahmed.exlexp"
+        applicationId = "com.muyeedahmed.exldroid"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
