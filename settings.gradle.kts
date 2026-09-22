@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ExlExp-Android"
+rootProject.name = "ExlDroid-Android"
 include(":app")

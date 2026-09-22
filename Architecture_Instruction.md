@@ -1,6 +1,6 @@
-# ExlExp Native Android (Kotlin + Jetpack Compose) Architecture Specification
+# ExlDroid Native Android (Kotlin + Jetpack Compose) Architecture Specification
 
-This document is the **definitive, exhaustive engineering blueprint** for building the native Android version of **ExlExp** (Excel-style Personal Finance & Expense Tracker). It captures 100% of the domain models, business logic, mathematical rules, database schemas, heuristics, API contracts, and UI specifications from the existing codebase.
+This document is the **definitive, exhaustive engineering blueprint** for building the native Android version of **ExlDroid** (Excel-style Personal Finance & Expense Tracker). It captures 100% of the domain models, business logic, mathematical rules, database schemas, heuristics, API contracts, and UI specifications from the existing codebase.
 
 Any AI agent or developer reading this specification has all the context necessary to implement the entire application from scratch in a new Android project without ambiguity.
 
@@ -26,7 +26,7 @@ Any AI agent or developer reading this specification has all the context necessa
 
 ## 1. Product Overview & Architectural Goals
 
-**ExlExp** is a personal finance tracker inspired by the density, precision, and clarity of spreadsheets (Excel / Google Sheets). Unlike conventional consumer finance apps that hide numbers behind oversized cards, ExlExp delivers dense, spreadsheet-style registries with instant calculations.
+**ExlDroid** is a personal finance tracker inspired by the density, precision, and clarity of spreadsheets (Excel / Google Sheets). Unlike conventional consumer finance apps that hide numbers behind oversized cards, ExlDroid delivers dense, spreadsheet-style registries with instant calculations.
 
 ### Key Pain Points of the React Native Version (Solved by Native Android)
 - **Dataset Size**: Users log over 6,500+ transactions. Storing this as a single JSON blob in memory or `AsyncStorage` causes UI stutter.
@@ -366,7 +366,7 @@ The native Android app features **4 Bottom Navigation Tabs** + **1 Floating Acti
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│ Top Bar: ExlExp                                         │
+│ Top Bar: ExlDroid                                         │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
 │                                                         │
@@ -491,7 +491,7 @@ Opened from the Dashboard "Show All Transactions →":
 When setting up the new native Android repository, use this standard clean package structure:
 
 ```
-app/src/main/java/com/muyeedahmed/exlexp/
+app/src/main/java/com/muyeedahmed/exldroid/
 ├── data/
 │   ├── local/
 │   │   ├── AppDatabase.kt
@@ -559,7 +559,7 @@ app/src/main/java/com/muyeedahmed/exlexp/
 │       └── settings/
 │           ├── SettingsScreen.kt
 │           └── SettingsViewModel.kt
-└── ExlExpApp.kt
+└── ExlDroidApp.kt
 ```
 
 ### Essential Gradle Dependencies (`app/build.gradle.kts`)
@@ -607,7 +607,7 @@ dependencies {
 ## 8. Summary for the Antigravity Agent
 
 When you start the new native Android project:
-1. Initialize the project with the package name `com.muyeedahmed.exlexp`.
+1. Initialize the project with the package name `com.muyeedahmed.exldroid`.
 2. Reference this document (`NATIVE_ANDROID_ARCHITECTURE_SPEC.md`) directly.
 3. Build the Room Entities and DAOs first, ensuring `Room.databaseBuilder` is set up with WAL mode enabled.
 4. Implement the Use Cases for transfer consolidation, balance calculations, and credit age.

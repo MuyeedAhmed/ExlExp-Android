@@ -1,0 +1,44 @@
+services:
+  # FastAPI Application
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: exldroid-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=True
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgrespassword@postgres-db:5432/exldroid
+      - SECRET_KEY=exldroid_docker_dev_secret_key_change_in_production
+      - CORS_ORIGINS=*
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app
+    restart: unless-stopped
+
+  # Local PostgreSQL Database (Simulates AWS RDS PostgreSQL)
+  postgres-db:
+    image: postgres:16-alpine
+    container_name: exldroid-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgrespassword
+      - POSTGRES_DB=exldroid
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./scripts/init_aws_rds.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d exldroid"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  pgdata:
